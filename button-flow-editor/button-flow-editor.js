@@ -1,94 +1,19 @@
 // Variables globales pour l'intégration Grist
 let allRecords = [];
-let sqlField, pythonfield, requestNameField;
 
 // ================================================================================
-// SECTION: INTÉGRATION GRIST
+// SECTION: INTÉGRATION GRIST (utilise /shared/grist-connector.js)
 // ================================================================================
 
 /**
- * Gestionnaire pour récupérer tous les enregistrements
+ * Override la fonction onRecords du grist-connector pour notre usage spécifique
  */
 function onRecords(records, mappings) {
     allRecords = records || [];
     console.log(`${allRecords.length} enregistrements reçus pour la sélection dynamique`);
     
-    // Définir les mappings
-    sqlField = mappings["sqlField"];
-    pythonfield = mappings["pythonfield"];
-    requestNameField = mappings["RequestName"];
-    
     // Mettre à jour l'affichage des requêtes
     updateQueriesDisplay();
-}
-
-/**
- * Gestionnaire lors du changement d'enregistrement (pas utilisé ici mais requis)
- */
-function onRecord(record, mappings) {
-    // Ne rien faire - on utilise seulement onRecords
-}
-
-/**
- * Gestionnaire lors de la création d'un nouvel enregistrement (pas utilisé ici mais requis)
- */
-function onNewRecord(record) {
-    // Ne rien faire - on utilise seulement onRecords
-}
-
-/**
- * Configure les paramètres Grist du widget
- */
-function configureGristSettings() {
-    if (typeof grist !== 'undefined') {
-        grist.onRecord(onRecord);
-        grist.onNewRecord(onNewRecord);
-        grist.onRecords(onRecords);
-        
-        grist.ready({
-            requiredAccess: 'read',
-            columns: [
-                {
-                    name: "sqlField",
-                    title: "Code SQL",
-                    optional: false,
-                    type: "Text",
-                    description: "Code SQL à exécuter (avec conversion automatique ID/Label)",
-                    allowMultiple: false,
-                },
-                {
-                    name: "pythonfield",
-                    title: "Code Python",
-                    optional: false,
-                    type: "Text",
-                    description: "Métadonnées des tables (ancien ou nouveau format)",
-                    allowMultiple: false,
-                },
-                {
-                    name: "RequestName",
-                    title: "Nom de la requête",
-                    optional: false,
-                    type: "Text",
-                    description: "Nom de la requête sélectionnée",
-                    allowMultiple: false,
-                }
-            ],
-        });
-    } else {
-        // Mode développement - données factices
-        setTimeout(() => {
-            allRecords = [
-                { id: 1, [requestNameField || 'RequestName']: 'Récupérer les utilisateurs' },
-                { id: 2, [requestNameField || 'RequestName']: 'Mettre à jour le statut' },
-                { id: 3, [requestNameField || 'RequestName']: 'Envoyer une notification' },
-                { id: 4, [requestNameField || 'RequestName']: 'Archiver les données' },
-                { id: 5, [requestNameField || 'RequestName']: 'Valider les formulaires' },
-                { id: 6, [requestNameField || 'RequestName']: 'Générer un rapport' },
-            ];
-            requestNameField = 'RequestName';
-            updateQueriesDisplay();
-        }, 1000);
-    }
 }
 
 /**
@@ -98,6 +23,11 @@ function updateQueriesDisplay() {
     const loadingMessage = document.getElementById('loading-message');
     const queriesContainer = document.getElementById('queries-container');
     const noQueriesMessage = document.getElementById('no-queries-message');
+    
+    if (!loadingMessage || !queriesContainer || !noQueriesMessage) {
+        console.error('Éléments DOM manquants pour updateQueriesDisplay');
+        return;
+    }
     
     loadingMessage.classList.add('hidden');
     
@@ -112,6 +42,7 @@ function updateQueriesDisplay() {
     queriesContainer.innerHTML = '';
     
     allRecords.forEach((record, index) => {
+        // Utilise requestNameField du grist-connector
         const queryName = record[requestNameField] || `Requête ${index + 1}`;
         
         const queryElement = document.createElement('div');
@@ -142,6 +73,8 @@ let initialPlaceholder;
 function initializeDragAndDrop() {
     const draggables = document.querySelectorAll('.draggable-item');
     const dropzone = document.getElementById('dropzone');
+    
+    if (!dropzone) return;
     
     if (!initialPlaceholder) {
         initialPlaceholder = dropzone.innerHTML;
@@ -211,6 +144,8 @@ function initializeDragAndDrop() {
 
 function updateConnectors() {
     const dropzone = document.getElementById('dropzone');
+    if (!dropzone) return;
+    
     const items = dropzone.querySelectorAll('.bg-white');
     
     // Supprimer les connecteurs existants
@@ -233,6 +168,9 @@ function updateConnectors() {
 function handleCreateButton() {
     const buttonName = document.getElementById('button-name').value.trim();
     const dropzone = document.getElementById('dropzone');
+    
+    if (!dropzone) return;
+    
     const selectedQueries = Array.from(dropzone.querySelectorAll('.bg-white')).map(item => {
         return item.querySelector('p').textContent;
     });
@@ -260,17 +198,27 @@ function handleCreateButton() {
 // ================================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Configuration Grist
-    configureGristSettings();
-    
-    // Bouton créer
-    document.getElementById('create-button').addEventListener('click', handleCreateButton);
-    
-    // Toggle (vous devrez implémenter la navigation vers l'autre page)
-    document.getElementById('toggle').addEventListener('change', (e) => {
-        if (e.target.checked) {
-            console.log('Toggle activé - navigation vers autre page');
-            // Ici vous devrez implémenter la navigation vers l'autre page
+    // Attendre que le grist-connector soit chargé
+    setTimeout(() => {
+        // Le grist-connector.js va automatiquement appeler configureGristSettings()
+        // et les callbacks onRecords, onRecord, etc.
+        
+        // Bouton créer
+        const createButton = document.getElementById('create-button');
+        if (createButton) {
+            createButton.addEventListener('click', handleCreateButton);
         }
-    });
+        
+        // Toggle pour navigation vers autre page
+        const toggle = document.getElementById('toggle');
+        if (toggle) {
+            toggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    console.log('Toggle activé - navigation vers autre page');
+                    // Ici vous devrez implémenter la navigation vers l'autre page
+                    // Par exemple : window.location.href = '/path/to/other-page.html';
+                }
+            });
+        }
+    }, 100);
 });
