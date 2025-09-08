@@ -69,8 +69,16 @@ function onRecords(records, mappings) {
     allRecords = records || [];
     console.log(`${allRecords.length} enregistrements reçus pour la sélection dynamique`);
     
-    // Mettre à jour la liste déroulante
-    updateQuerySelector();
+    // Mettre à jour l'affichage des requêtes selon le contexte
+    if (typeof updateQuerySelector === 'function') {
+        // Contexte sql-editor
+        updateQuerySelector();
+    } else if (typeof updateQueriesDisplay === 'function') {
+        // Contexte button-flow-editor
+        updateQueriesDisplay();
+    } else {
+        console.warn('Aucune fonction de mise à jour des requêtes disponible');
+    }
 }
 
 /**

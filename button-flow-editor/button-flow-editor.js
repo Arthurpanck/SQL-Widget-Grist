@@ -78,37 +78,15 @@ function updateQueriesDisplay() {
     initializeDragAndDrop();
 }
 
-// ================================================================================
-// SECTION: OVERRIDE DU CALLBACK onRecords POUR NOTRE USAGE
+// ================================================================================  
+// SECTION: INTEGRATION AVEC LE GRIST-CONNECTOR
 // ================================================================================
 
 /**
- * Sauvegarde la fonction onRecords originale du grist-connector
+ * Cette fonction sera appelée automatiquement par le grist-connector.js
+ * quand il détecte que updateQueriesDisplay existe (voir modification du grist-connector)
+ * Plus besoin d'override - utilisation du système de détection automatique
  */
-let originalOnRecords = null;
-
-/**
- * Override le callback onRecords pour ajouter notre logique d'affichage
- */
-function setupOnRecordsOverride() {
-    // Sauvegarder l'original s'il existe
-    if (typeof window.onRecords === 'function') {
-        originalOnRecords = window.onRecords;
-    }
-    
-    // Redefinir onRecords pour notre usage
-    window.onRecords = function(records, mappings) {
-        console.log(`Réception de ${records.length} enregistrements pour le button flow editor`);
-        
-        // Appeler la fonction originale du connecteur si elle existe
-        if (originalOnRecords) {
-            originalOnRecords(records, mappings);
-        }
-        
-        // Ajouter notre logique spécifique pour le drag & drop
-        updateQueriesDisplay();
-    };
-}
 
 // ================================================================================
 // SECTION: DRAG & DROP FUNCTIONALITY
@@ -325,8 +303,13 @@ function handleToggleChange(e) {
 function initializeButtonFlowEditor() {
     console.log('Initialisation du Button Flow Editor');
     
-    // Setup du override onRecords
-    setupOnRecordsOverride();
+    // Initialiser la connection Grist
+    if (typeof configureGristSettings === 'function') {
+        configureGristSettings();
+        console.log('Configuration Grist initialisée');
+    } else {
+        console.error('configureGristSettings non disponible - grist-connector.js non chargé?');
+    }
     
     // Configuration des event listeners
     const createButton = document.getElementById('create-button');
