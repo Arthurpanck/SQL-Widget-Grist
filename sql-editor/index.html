@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SQL Code Editor</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<!-- Ace Editor CDNs requis pour le JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/mode-sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/theme-eclipse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ext-language_tools.min.js"></script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .ace_editor {
+            border-radius: 0.375rem;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body class="p-8">
+<div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+<!-- Barre de statut -->
+<div class="flex items-center space-x-2 mb-4 p-2 bg-gray-50 rounded-md">
+<div id="statusDot" class="w-3 h-3 rounded-full bg-gray-400"></div>
+<span id="statusText" class="text-sm text-gray-600">Initialisation...</span>
+</div>
+
+<!-- Bouton Enregistrer au-dessus -->
+<div class="flex justify-end mb-4">
+    <button id="saveBtn" style="background-color: #16b378; color: white;" class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-teal-700 transition-colors duration-200" disabled>
+        Enregistrer
+    </button>
+</div>
+
+<!-- Section des sélecteurs dans leur propre carré -->
+<div class="bg-gray-50 p-4 rounded-md border border-gray-200 mb-4">
+    <div class="space-y-3">
+        <div class="flex items-center space-x-3">
+            <label class="text-sm font-medium text-gray-700 w-32" for="querySelect">Nom de la requête:</label>
+            <select id="querySelect" class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                <option value="">-- Sélectionner une requête --</option>
+            </select>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+            <span class="text-sm font-medium text-gray-700 w-32">Table Destination:</span>
+            <select id="targetTable" class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 text-sm">
+                <option value="">Sélectionner...</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Éditeur SQL -->
+<div class="relative">
+    <div class="w-full h-80 bg-gray-50 text-sm font-mono p-4 rounded-md border border-gray-200" id="editor">-- Saisissez votre requête SQL ici
+SELECT * FROM users;</div>
+</div>
+
+<!-- Section contrôles inférieurs -->
+<div class="mt-4 flex items-center justify-between">
+    <!-- Bouton Tester -->
+    <button id="executeBtn" class="text-teal-600 font-medium text-sm hover:text-teal-800 transition-colors duration-200" disabled>
+        Tester la requête
+    </button>
+    
+    <!-- Spinner -->
+    <div id="spinner" class="hidden">
+        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-teal-600"></div>
+    </div>
+    
+    <div class="text-sm text-gray-500 h-5" id="result-message">
+    </div>
+</div>
+
+<!-- Section résultats -->
+<div id="resultsSection" class="hidden mt-6 p-4 border border-gray-200 rounded-md bg-gray-50">
+    <h3 class="text-sm font-medium text-gray-700 mb-2">Résultats</h3>
+    <div id="resultsContent"></div>
+</div>
+</div>
+    <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+    <script src="../shared/core/data-manager.js"></script>
+    <script src="../shared/core/sql-converter.js"></script>
+    <script src="../shared/core/grist-connector.js"></script>
+    <script src="../shared/ui/query-selector.js"></script>
+    <script src="../shared/ui/ui-helpers.js"></script>
+    <script src="ace-config.js"></script>
+    <script src="sql-executor.js"></script>
+    <script src="sql-editor.js"></script>
+</body>
+</html>
