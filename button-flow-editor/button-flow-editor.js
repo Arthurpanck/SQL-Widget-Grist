@@ -1,23 +1,17 @@
-// Variables globales pour l'intégration Grist
-let allRecords = [];
+// ================================================================================
+// BUTTON FLOW EDITOR - Réutilise les fonctions du grist-connector.js
+// ================================================================================
+
+// Les variables globales (allRecords, requestNameField, etc.) sont déjà définies 
+// dans /shared/grist-connector.js - on les réutilise directement
 
 // ================================================================================
-// SECTION: INTÉGRATION GRIST (utilise /shared/grist-connector.js)
+// SECTION: ADAPTATION DE updateQuerySelector POUR LE DRAG & DROP
 // ================================================================================
 
 /**
- * Override la fonction onRecords du grist-connector pour notre usage spécifique
- */
-function onRecords(records, mappings) {
-    allRecords = records || [];
-    console.log(`${allRecords.length} enregistrements reçus pour la sélection dynamique`);
-    
-    // Mettre à jour l'affichage des requêtes
-    updateQueriesDisplay();
-}
-
-/**
- * Met à jour l'affichage des requêtes disponibles
+ * Met à jour l'affichage des requêtes disponibles pour le drag & drop
+ * Adaptation de updateQuerySelector du grist-connector pour créer des éléments draggables
  */
 function updateQueriesDisplay() {
     const loadingMessage = document.getElementById('loading-message');
@@ -31,50 +25,108 @@ function updateQueriesDisplay() {
     
     loadingMessage.classList.add('hidden');
     
-    if (allRecords.length === 0) {
+    if (!allRecords.length || !requestNameField) {
+        console.log("Aucun enregistrement ou champ nom de requête non défini");
         noQueriesMessage.classList.remove('hidden');
         queriesContainer.classList.add('hidden');
         return;
     }
+
+    // Réutiliser la même logique que updateQuerySelector du grist-connector
+    const uniqueQueryNames = new Set();
     
+    allRecords.forEach(record => {
+        const queryName = record[requestNameField];
+        if (queryName && queryName.trim()) {
+            uniqueQueryNames.add(queryName.trim());
+        }
+    });
+
+    if (uniqueQueryNames.size === 0) {
+        noQueriesMessage.classList.remove('hidden');
+        queriesContainer.classList.add('hidden');
+        return;
+    }
+
     noQueriesMessage.classList.add('hidden');
     queriesContainer.classList.remove('hidden');
     queriesContainer.innerHTML = '';
     
-    allRecords.forEach((record, index) => {
-        // Utilise requestNameField du grist-connector
-        const queryName = record[requestNameField] || `Requête ${index + 1}`;
-        
-        const queryElement = document.createElement('div');
-        queryElement.className = 'draggable-item bg-gray-100 p-4 rounded-lg flex items-center justify-between hover:bg-gray-200 transition-colors';
-        queryElement.draggable = true;
-        queryElement.id = `query-${record.id || index}`;
-        
-        queryElement.innerHTML = `
-            <div class="flex-1 min-w-0">
-                <p class="font-medium text-gray-800 truncate">${queryName}</p>
-            </div>
-            <span class="material-icons text-gray-400 ml-2 flex-shrink-0">drag_indicator</span>
-        `;
-        
-        queriesContainer.appendChild(queryElement);
-    });
+    // Créer les éléments draggables au lieu d'options select
+    Array.from(uniqueQueryNames)
+        .sort()
+        .forEach((queryName, index) => {
+            const queryElement = document.createElement('div');
+            queryElement.className = 'draggable-item bg-gray-100 p-4 rounded-lg flex items-center justify-between hover:bg-gray-200 transition-colors';
+            queryElement.draggable = true;
+            queryElement.id = `query-${index}`;
+            queryElement.dataset.queryName = queryName; // Stocker le nom pour usage ultérieur
+            
+            queryElement.innerHTML = `
+                <div class="flex-1 min-w-0">
+                    <p class="font-medium text-gray-800 truncate">${queryName}</p>
+                </div>
+                <span class="material-icons text-gray-400 ml-2 flex-shrink-0">drag_indicator</span>
+            `;
+            
+            queriesContainer.appendChild(queryElement);
+        });
     
-    // Réinitialiser les event listeners
+    console.log(`${uniqueQueryNames.size} requêtes uniques ajoutées au drag & drop`);
+    
+    // Réinitialiser les event listeners du drag & drop
     initializeDragAndDrop();
 }
 
 // ================================================================================
-// SECTION: DRAG & DROP
+// SECTION: OVERRIDE DU CALLBACK onRecords POUR NOTRE USAGE
+// ================================================================================
+
+/**
+ * Sauvegarde la fonction onRecords originale du grist-connector
+ */
+let originalOnRecords = null;
+
+/**
+ * Override le callback onRecords pour ajouter notre logique d'affichage
+ */
+function setupOnRecordsOverride() {
+    // Sauvegarder l'original s'il existe
+    if (typeof window.onRecords === 'function') {
+        originalOnRecords = window.onRecords;
+    }
+    
+    // Redefinir onRecords pour notre usage
+    window.onRecords = function(records, mappings) {
+        console.log(`Réception de ${records.length} enregistrements pour le button flow editor`);
+        
+        // Appeler la fonction originale du connecteur si elle existe
+        if (originalOnRecords) {
+            originalOnRecords(records, mappings);
+        }
+        
+        // Ajouter notre logique spécifique pour le drag & drop
+        updateQueriesDisplay();
+    };
+}
+
+// ================================================================================
+// SECTION: DRAG & DROP FUNCTIONALITY
 // ================================================================================
 
 let initialPlaceholder;
 
+/**
+ * Initialise les fonctionnalités de drag & drop
+ */
 function initializeDragAndDrop() {
     const draggables = document.querySelectorAll('.draggable-item');
     const dropzone = document.getElementById('dropzone');
     
-    if (!dropzone) return;
+    if (!dropzone) {
+        console.error('Dropzone non trouvée');
+        return;
+    }
     
     if (!initialPlaceholder) {
         initialPlaceholder = dropzone.innerHTML;
@@ -91,6 +143,7 @@ function initializeDragAndDrop() {
         });
     });
     
+    // Event listeners pour la dropzone
     dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropzone.classList.add('bg-teal-50', 'border-teal-400');
@@ -106,6 +159,7 @@ function initializeDragAndDrop() {
         e.preventDefault();
         dropzone.classList.remove('bg-teal-50', 'border-teal-400');
         
+        // Supprimer le placeholder si c'est le premier élément
         if (dropzone.querySelector('p.text-center')) {
             dropzone.innerHTML = '';
         }
@@ -115,11 +169,25 @@ function initializeDragAndDrop() {
         
         if (!draggableElement) return;
         
+        // Vérifier si cette requête n'est pas déjà dans la dropzone
+        const queryName = draggableElement.dataset.queryName;
+        const existingQueries = Array.from(dropzone.querySelectorAll('.bg-white')).map(item => 
+            item.querySelector('p').textContent
+        );
+        
+        if (existingQueries.includes(queryName)) {
+            console.log('Cette requête est déjà dans le workflow');
+            return;
+        }
+        
+        // Créer un clone pour la dropzone
         const clone = draggableElement.cloneNode(true);
         clone.classList.remove('draggable-item', 'bg-gray-100', 'hover:bg-gray-200');
         clone.classList.add('bg-white', 'shadow-sm', 'mb-3', 'border');
         clone.removeAttribute('draggable');
+        clone.id = `dropped-${Date.now()}`; // ID unique pour les éléments droppés
         
+        // Remplacer l'icône drag par un bouton delete
         const deleteBtn = document.createElement('button');
         deleteBtn.innerHTML = '<span class="material-icons text-red-500 hover:text-red-700">delete</span>';
         deleteBtn.classList.add('ml-auto', 'flex-shrink-0');
@@ -142,6 +210,9 @@ function initializeDragAndDrop() {
     });
 }
 
+/**
+ * Met à jour les connecteurs visuels entre les requêtes
+ */
 function updateConnectors() {
     const dropzone = document.getElementById('dropzone');
     if (!dropzone) return;
@@ -165,11 +236,17 @@ function updateConnectors() {
 // SECTION: GESTION DU BOUTON "CRÉER"
 // ================================================================================
 
+/**
+ * Gère la création du bouton avec les requêtes sélectionnées
+ */
 function handleCreateButton() {
     const buttonName = document.getElementById('button-name').value.trim();
     const dropzone = document.getElementById('dropzone');
     
-    if (!dropzone) return;
+    if (!dropzone) {
+        console.error('Dropzone non trouvée');
+        return;
+    }
     
     const selectedQueries = Array.from(dropzone.querySelectorAll('.bg-white')).map(item => {
         return item.querySelector('p').textContent;
@@ -185,40 +262,101 @@ function handleCreateButton() {
         return;
     }
     
-    console.log('Création du bouton:', {
+    // Créer l'objet représentant le bouton
+    const buttonConfig = {
         name: buttonName,
-        queries: selectedQueries
-    });
+        queries: selectedQueries,
+        createdAt: new Date().toISOString(),
+        queryCount: selectedQueries.length
+    };
     
-    alert(`Bouton "${buttonName}" créé avec ${selectedQueries.length} requête(s):\n${selectedQueries.join('\n')}`);
+    console.log('Configuration du bouton créé:', buttonConfig);
+    
+    // Ici vous pourrez ajouter la logique pour sauvegarder le bouton
+    // Par exemple dans une table Grist ou dans localStorage
+    
+    // Affichage de confirmation
+    const message = `Bouton "${buttonName}" créé avec succès!\n\nRequêtes incluses (${selectedQueries.length}):\n${selectedQueries.map((q, i) => `${i + 1}. ${q}`).join('\n')}`;
+    alert(message);
+    
+    // Optionnel: réinitialiser le formulaire
+    document.getElementById('button-name').value = '';
+    dropzone.innerHTML = initialPlaceholder;
+}
+
+// ================================================================================
+// SECTION: GESTION DU TOGGLE
+// ================================================================================
+
+/**
+ * Gère le basculement vers l'autre page via le toggle
+ */
+function handleToggleChange(e) {
+    if (e.target.checked) {
+        console.log('Toggle activé - basculement vers l\'éditeur de requêtes');
+        
+        // Vous pouvez implémenter différentes stratégies :
+        
+        // Option 1: Navigation simple
+        // window.location.href = '/path/to/query-editor.html';
+        
+        // Option 2: Si vous utilisez un système de hash routing
+        // window.location.hash = '#query-editor';
+        
+        // Option 3: Event custom pour un système de routing plus complexe
+        window.dispatchEvent(new CustomEvent('navigate', { 
+            detail: { page: 'query-editor' } 
+        }));
+        
+        // Option 4: Affichage/masquage de sections si tout est dans la même page
+        // document.getElementById('button-creator').classList.add('hidden');
+        // document.getElementById('query-editor').classList.remove('hidden');
+        
+    }
 }
 
 // ================================================================================
 // SECTION: INITIALISATION
 // ================================================================================
 
+/**
+ * Fonction d'initialisation principale
+ */
+function initializeButtonFlowEditor() {
+    console.log('Initialisation du Button Flow Editor');
+    
+    // Setup du override onRecords
+    setupOnRecordsOverride();
+    
+    // Configuration des event listeners
+    const createButton = document.getElementById('create-button');
+    if (createButton) {
+        createButton.addEventListener('click', handleCreateButton);
+    } else {
+        console.error('Bouton create-button non trouvé');
+    }
+    
+    const toggle = document.getElementById('toggle');
+    if (toggle) {
+        toggle.addEventListener('change', handleToggleChange);
+    } else {
+        console.error('Toggle non trouvé');
+    }
+    
+    // Initialiser le drag & drop (sera réinitialisé quand les données arrivent)
+    initializeDragAndDrop();
+    
+    console.log('Button Flow Editor initialisé avec succès');
+}
+
+// ================================================================================
+// SECTION: LANCEMENT
+// ================================================================================
+
+// Attendre que le DOM soit chargé et que le grist-connector soit initialisé
 document.addEventListener('DOMContentLoaded', () => {
-    // Attendre que le grist-connector soit chargé
+    // Petit délai pour s'assurer que le grist-connector est chargé
     setTimeout(() => {
-        // Le grist-connector.js va automatiquement appeler configureGristSettings()
-        // et les callbacks onRecords, onRecord, etc.
-        
-        // Bouton créer
-        const createButton = document.getElementById('create-button');
-        if (createButton) {
-            createButton.addEventListener('click', handleCreateButton);
-        }
-        
-        // Toggle pour navigation vers autre page
-        const toggle = document.getElementById('toggle');
-        if (toggle) {
-            toggle.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    console.log('Toggle activé - navigation vers autre page');
-                    // Ici vous devrez implémenter la navigation vers l'autre page
-                    // Par exemple : window.location.href = '/path/to/other-page.html';
-                }
-            });
-        }
+        initializeButtonFlowEditor();
     }, 100);
 });
