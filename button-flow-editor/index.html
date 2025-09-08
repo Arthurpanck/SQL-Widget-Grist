@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Création de bouton</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/shared/grist-connector.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .draggable-item {
+            cursor: grab;
+        }
+        .draggable-item:active {
+            cursor: grabbing;
+        }
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #0d9488;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #0d9488;
+        }
+        .query-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 0.75rem;
+        }
+        @media (max-width: 640px) {
+            .query-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-4 md:p-8 relative">
+        <div class="absolute top-4 right-4 md:top-8 md:right-8 flex items-center space-x-2">
+            <span class="text-sm font-medium text-gray-700">Créateur de requête</span>
+            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                <input class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 appearance-none cursor-pointer" 
+                       id="toggle" name="toggle" type="checkbox"/>
+                <label class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer" for="toggle"></label>
+            </div>
+        </div>
+        
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Création de bouton personnalisé</h1>
+        <p class="text-gray-500 mb-6 md:mb-8">Composez votre bouton en assemblant différentes requêtes.</p>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+            <div>
+                <h2 class="text-lg md:text-xl font-semibold text-gray-700 mb-4">Requêtes disponibles</h2>
+                <div id="loading-message" class="text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                    <p class="mt-2 text-gray-500">Chargement des requêtes...</p>
+                </div>
+                <div id="queries-container" class="query-grid hidden"></div>
+                <div id="no-queries-message" class="text-center py-8 text-gray-500 hidden">
+                    <span class="material-icons text-4xl text-gray-300 mb-2">search_off</span>
+                    <p>Aucune requête disponible</p>
+                </div>
+            </div>
+            
+            <div>
+                <h2 class="text-lg md:text-xl font-semibold text-gray-700 mb-4">Composition du bouton</h2>
+                <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-6 min-h-[300px]" id="dropzone">
+                    <p class="text-center text-gray-400">Glissez-déposez les requêtes ici pour construire votre bouton.</p>
+                </div>
+                
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-gray-700" for="button-name">Nom du bouton</label>
+                    <input class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm" 
+                           id="button-name" placeholder="Ex: Valider et Notifier" type="text"/>
+                </div>
+                
+                <div class="mt-6 md:mt-8 flex justify-end">
+                    <button class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out flex items-center" 
+                            type="button" id="create-button">
+                        <span class="material-icons mr-2">add_circle</span>
+                        Créer le bouton
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="button-flow-editor.js"></script>
+</body>
+</html>
