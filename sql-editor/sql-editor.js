@@ -72,6 +72,14 @@ ready(() => {
         console.warn("Élément querySelect non trouvé dans le DOM");
     }
     
+    // Initialiser la navigation avec toggle
+    if (typeof PageNavigation !== 'undefined') {
+        PageNavigation.init('toggle', 'toggle-label');
+        console.log("Navigation initialisée avec toggle");
+    } else {
+        console.error('PageNavigation non disponible - page-navigation.js non chargé?');
+    }
+    
     console.log("Widget Enhanced avec sélection dynamique initialisé avec succès");
 });
 

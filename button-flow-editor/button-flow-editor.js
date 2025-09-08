@@ -263,35 +263,13 @@ function handleCreateButton() {
 }
 
 // ================================================================================
-// SECTION: GESTION DU TOGGLE
+// SECTION: GESTION DU TOGGLE DE NAVIGATION
 // ================================================================================
 
 /**
- * Gère le basculement vers l'autre page via le toggle
+ * Instance de navigation pour ce composant
  */
-function handleToggleChange(e) {
-    if (e.target.checked) {
-        console.log('Toggle activé - basculement vers l\'éditeur de requêtes');
-        
-        // Vous pouvez implémenter différentes stratégies :
-        
-        // Option 1: Navigation simple
-        // window.location.href = '/path/to/query-editor.html';
-        
-        // Option 2: Si vous utilisez un système de hash routing
-        // window.location.hash = '#query-editor';
-        
-        // Option 3: Event custom pour un système de routing plus complexe
-        window.dispatchEvent(new CustomEvent('navigate', { 
-            detail: { page: 'query-editor' } 
-        }));
-        
-        // Option 4: Affichage/masquage de sections si tout est dans la même page
-        // document.getElementById('button-creator').classList.add('hidden');
-        // document.getElementById('query-editor').classList.remove('hidden');
-        
-    }
-}
+let pageNavigation = null;
 
 // ================================================================================
 // SECTION: INITIALISATION
@@ -319,11 +297,11 @@ function initializeButtonFlowEditor() {
         console.error('Bouton create-button non trouvé');
     }
     
-    const toggle = document.getElementById('toggle');
-    if (toggle) {
-        toggle.addEventListener('change', handleToggleChange);
+    // Initialiser la navigation avec toggle
+    if (typeof PageNavigation !== 'undefined') {
+        pageNavigation = PageNavigation.init('toggle', 'toggle-label');
     } else {
-        console.error('Toggle non trouvé');
+        console.error('PageNavigation non disponible - page-navigation.js non chargé?');
     }
     
     // Initialiser le drag & drop (sera réinitialisé quand les données arrivent)
