@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Sélection de bouton</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .button-selector {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(0.9);
+            opacity: 0.7;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .button-selector:hover {
+            transform: scale(0.95);
+            opacity: 0.9;
+        }
+        
+        .button-selector.selected {
+            transform: scale(1.05);
+            opacity: 1;
+            z-index: 10;
+        }
+        
+        .button-selector.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: inherit;
+        }
+        
+        .button-selector::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .button-selector:hover::before {
+            left: 100%;
+        }
+        
+        .container-background {
+            background: #f8f9fa;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'soft-green': '#a8e6cf',
+                        'soft-green-text': '#2e7d32',
+                        'soft-orange': '#ffb366',
+                        'soft-orange-text': '#5d4037',
+                        'soft-pink': '#f8bbd9',
+                        'soft-pink-text': '#6a1b9a',
+                        'soft-blue': '#a8d8ea',
+                        'soft-blue-text': '#1565c0',
+                        'soft-purple': '#d1c4e9',
+                        'soft-purple-text': '#4527a0',
+                        'soft-yellow': '#fff3a0',
+                        'soft-yellow-text': '#f57f17',
+                        'soft-teal': '#b2dfdb',
+                        'soft-teal-text': '#00695c',
+                        'soft-coral': '#ffcdd2',
+                        'soft-coral-text': '#c62828'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Sélectionnez le bouton à afficher</h1>
+        <p class="text-gray-500 mb-8">Choisissez le bouton qui sera visible par l'utilisateur. Un seul choix est possible.</p>
+        
+        <div class="flex justify-center mb-8">
+            <div class="container-background p-5 rounded-2xl shadow-md">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                        <input class="hidden" id="bouton1" name="boutonSelection" type="radio" value="1"/>
+                        <label class="button-selector cursor-pointer flex items-center justify-center p-4 rounded-xl text-soft-green-text font-medium bg-soft-green shadow-md min-w-[120px] text-center" for="bouton1">Bouton 1</label>
+                    </div>
+                    
+                    <div>
+                        <input class="hidden" id="bouton2" name="boutonSelection" type="radio" value="2"/>
+                        <label class="button-selector cursor-pointer flex items-center justify-center p-4 rounded-xl text-soft-orange-text font-medium bg-soft-orange shadow-md min-w-[120px] text-center" for="bouton2">Bouton 2</label>
+                    </div>
+                    
+                    <div>
+                        <input checked="" class="hidden" id="bouton3" name="boutonSelection" type="radio" value="3"/>
+                        <label class="button-selector selected cursor-pointer flex items-center justify-center p-4 rounded-xl text-soft-pink-text font-medium bg-soft-pink shadow-md min-w-[120px] text-center" for="bouton3">Bouton 3</label>
+                    </div>
+                    
+                    <div>
+                        <input class="hidden" id="bouton4" name="boutonSelection" type="radio" value="4"/>
+                        <label class="button-selector cursor-pointer flex items-center justify-center p-4 rounded-xl text-soft-blue-text font-medium bg-soft-blue shadow-md min-w-[120px] text-center" for="bouton4">Bouton 4</label>
+                    </div>
+                    
+                    <div>
+                        <input class="hidden" id="bouton5" name="boutonSelection" type="radio" value="5"/>
+                        <label class="button-selector cursor-pointer flex items-center justify-center p-4 rounded-xl text-soft-purple-text font-medium bg-soft-purple shadow-md min-w-[120px] text-center" for="bouton5">Bouton 5</label>
+                    </div>
+                    
+                    <div>
+                        <input class="hidden" id="bouton6" name="boutonSelection" type="radio" value="6"/>
+                        <label class="button-selector cursor-pointer flex items-center justify-center p-4 rounded-xl text-soft-yellow-text font-medium bg-soft-yellow shadow-md min-w-[120px] text-center" for="bouton6">Bouton 6</label>
+                    </div>
+                    
+                    <div>
+                        <input class="hidden" id="bouton7" name="boutonSelection" type="radio" value="7"/>
+                        <label class="button-selector cursor-pointer flex items-center justify-center p-4 rounded-xl text-soft-teal-text font-medium bg-soft-teal shadow-md min-w-[120px] text-center" for="bouton7">Bouton 7</label>
+                    </div>
+                    
+                    <div>
+                        <input class="hidden" id="bouton8" name="boutonSelection" type="radio" value="8"/>
+                        <label class="button-selector cursor-pointer flex items-center justify-center p-4 rounded-xl text-soft-coral-text font-medium bg-soft-coral shadow-md min-w-[120px] text-center" for="bouton8">Bouton 8</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border-t pt-6 flex justify-end items-center">
+            <div class="mr-auto">
+                <span class="text-gray-600">Bouton sélectionné : </span>
+                <span class="font-semibold text-gray-800" id="selected-button-text">Bouton 3</span>
+            </div>
+            <button class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg mr-4 hover:bg-gray-300 transition-colors">Annuler</button>
+            <button class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 flex items-center transition-colors">
+                <span class="material-icons mr-2">save</span>
+                Sauvegarder
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const radios = document.querySelectorAll('input[name="boutonSelection"]');
+        const selectedButtonText = document.getElementById('selected-button-text');
+        const labels = document.querySelectorAll('.button-selector');
+        
+        radios.forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                // Retirer la classe selected de tous les labels
+                labels.forEach(label => label.classList.remove('selected'));
+                
+                // Ajouter la classe selected au label correspondant
+                const selectedLabel = document.querySelector(`label[for="${event.target.id}"]`);
+                selectedLabel.classList.add('selected');
+                selectedButtonText.textContent = selectedLabel.textContent;
+            });
+        });
+    </script>
+</body>
+</html>
