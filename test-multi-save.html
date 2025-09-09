@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <title>Test Sauvegarde Multiple</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Mock Grist API -->
+    <script>
+        window.grist = {
+            ready: function(options) {
+                console.log('Grist ready appelé');
+                setTimeout(() => this.triggerMockData(), 500);
+            },
+            onRecord: function(callback) { this._onRecord = callback; },
+            onNewRecord: function(callback) { this._onNewRecord = callback; },
+            onRecords: function(callback) { this._onRecords = callback; },
+            selectedTable: {
+                update: async function(updateData) {
+                    console.log('Mock update appelé pour ID:', updateData.id);
+                    // Simuler succès avec 90% de chances
+                    const success = Math.random() > 0.1;
+                    if (success) {
+                        console.log('✓ Sauvegarde réussie ID:', updateData.id);
+                        return { success: true };
+                    } else {
+                        console.error('✗ Échec sauvegarde ID:', updateData.id);
+                        throw new Error('Simulation échec sauvegarde');
+                    }
+                }
+            },
+            
+            triggerMockData: function() {
+                const mockRecords = [
+                    { id: 1, RequestName: "Requête A", buttonconfig: "[]" },
+                    { id: 2, RequestName: "Requête B", buttonconfig: "[]" },
+                    { id: 3, RequestName: "Requête C", buttonconfig: "[]" },
+                    { id: 4, RequestName: "Requête D", buttonconfig: "[]" },
+                    { id: 5, RequestName: "Requête E", buttonconfig: "[]" }
+                ];
+                const mockMappings = {
+                    RequestName: "RequestName",
+                    buttonconfig: "buttonconfig"
+                };
+                
+                if (this._onRecords) {
+                    this._onRecords(mockRecords, mockMappings);
+                }
+            }
+        };
+    </script>
+    
+    <!-- Modules -->
+    <script src="shared/core/data-manager.js"></script>
+    <script src="shared/core/grist-connector.js"></script>
+    <script src="shared/core/button-manager.js"></script>
+</head>
+<body class="p-8 bg-gray-100">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Test Sauvegarde Multiple</h1>
+        
+        <div class="space-y-6">
+            <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-500">
+                <h2 class="font-semibold text-blue-800 mb-4">Test de Sauvegarde dans Tous les Enregistrements</h2>
+                <div class="space-y-2">
+                    <input id="test-button-name" placeholder="Nom du bouton test" class="border px-3 py-2 rounded w-full" value="Bouton Test Multiple">
+                    <button onclick="testMultiSave()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Tester sauvegarde multiple
+                    </button>
+                </div>
+                <div id="test-results" class="mt-4 text-sm"></div>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded border-l-4 border-green-500">
+                <h2 class="font-semibold text-green-800 mb-4">État des Enregistrements</h2>
+                <button onclick="showRecordsState()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    Afficher état
+                </button>
+                <div id="records-state" class="mt-4"></div>
+            </div>
+            
+            <div class="bg-gray-100 p-4 rounded">
+                <h3 class="font-semibold mb-2">Console Logs:</h3>
+                <div id="console-logs" class="text-xs font-mono bg-black text-green-400 p-2 rounded h-40 overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Intercepter les logs
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addLog(type, ...args) {
+            const logDiv = document.getElementById('console-logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
+            const color = type === 'error' ? 'red' : type === 'warn' ? 'yellow' : 'green';
+            logDiv.innerHTML += `<div class="text-${color}-400">[${timestamp}] ${type.toUpperCase()}: ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        console.log = (...args) => { originalLog(...args); addLog('log', ...args); };
+        console.error = (...args) => { originalError(...args); addLog('error', ...args); };
+        console.warn = (...args) => { originalWarn(...args); addLog('warn', ...args); };
+        
+        // Variables globales
+        let buttonConfigField = 'buttonconfig';
+        let requestNameField = 'RequestName';
+        let allRecords = [];
+        
+        // Test de sauvegarde multiple
+        async function testMultiSave() {
+            const results = document.getElementById('test-results');
+            const buttonName = document.getElementById('test-button-name').value;
+            
+            if (!allRecords || allRecords.length === 0) {
+                results.innerHTML = '<span class="text-red-600">✗ Aucun enregistrement disponible</span>';
+                return;
+            }
+            
+            results.innerHTML = '<span class="text-blue-600">⏳ Test en cours...</span>';
+            
+            try {
+                const newButton = {
+                    name: buttonName,
+                    sequence: [1, 2, 3] // IDs de test
+                };
+                
+                console.log(`Début test sauvegarde dans ${allRecords.length} enregistrements`);
+                
+                let successCount = 0;
+                let errorCount = 0;
+                const errors = [];
+                
+                for (const record of allRecords) {
+                    try {
+                        const success = await ButtonManager.addButton(record, newButton);
+                        if (success) {
+                            successCount++;
+                            console.log(`✓ Sauvegardé dans ID ${record.id}`);
+                        } else {
+                            errorCount++;
+                            console.warn(`✗ Échec dans ID ${record.id}`);
+                        }
+                    } catch (error) {
+                        errorCount++;
+                        errors.push(`ID ${record.id}: ${error.message}`);
+                        console.error(`✗ Erreur dans ID ${record.id}:`, error);
+                    }
+                    
+                    // Petite pause pour voir le progress
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+                
+                // Afficher résultats
+                let resultHTML = `
+                    <div class="space-y-2">
+                        <div class="font-semibold">Résultats du test:</div>
+                        <div class="text-green-600">✓ Succès: ${successCount}/${allRecords.length} enregistrements</div>
+                `;
+                
+                if (errorCount > 0) {
+                    resultHTML += `<div class="text-red-600">✗ Échecs: ${errorCount} enregistrements</div>`;
+                    if (errors.length > 0) {
+                        resultHTML += `<div class="text-xs text-gray-600">Erreurs: ${errors.slice(0, 2).join(', ')}</div>`;
+                    }
+                }
+                
+                resultHTML += `</div>`;
+                results.innerHTML = resultHTML;
+                
+            } catch (error) {
+                results.innerHTML = `<span class="text-red-600">✗ Erreur générale: ${error.message}</span>`;
+            }
+        }
+        
+        function showRecordsState() {
+            const stateDiv = document.getElementById('records-state');
+            
+            if (!allRecords || allRecords.length === 0) {
+                stateDiv.innerHTML = '<span class="text-red-600">Aucun enregistrement chargé</span>';
+                return;
+            }
+            
+            let html = `
+                <div class="space-y-2">
+                    <div class="font-semibold">Enregistrements disponibles (${allRecords.length}):</div>
+            `;
+            
+            allRecords.forEach(record => {
+                const config = ButtonManager.readButtonConfig(record);
+                html += `
+                    <div class="text-sm border-l-2 border-gray-300 pl-2">
+                        <div><strong>ID ${record.id}:</strong> ${record[requestNameField] || 'Sans nom'}</div>
+                        <div class="text-gray-600">Boutons: ${config.length}</div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            stateDiv.innerHTML = html;
+        }
+        
+        // Auto-initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Test sauvegarde multiple initialisé');
+            
+            if (typeof grist !== 'undefined') {
+                grist.ready({ requiredAccess: 'full' });
+            }
+            
+            // Auto-affichage de l'état après un délai
+            setTimeout(() => {
+                showRecordsState();
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

@@ -241,9 +241,9 @@ async function handleCreateButton() {
         return;
     }
     
-    // Vérifier qu'on a un enregistrement courant pour sauvegarder
-    if (!oldRecord) {
-        alert('Aucun enregistrement sélectionné pour sauvegarder le bouton');
+    // Vérifier qu'on a des enregistrements disponibles
+    if (!allRecords || allRecords.length === 0) {
+        alert('Aucun enregistrement disponible pour sauvegarder le bouton');
         return;
     }
     
@@ -280,22 +280,59 @@ async function handleCreateButton() {
         }
         
         console.log('Nouveau bouton à sauvegarder:', newButton);
+        console.log(`Sauvegarde dans ${allRecords.length} enregistrements...`);
         
-        // Sauvegarder via ButtonManager
-        const success = await ButtonManager.addButton(oldRecord, newButton);
+        // Sauvegarder dans TOUS les enregistrements
+        let successCount = 0;
+        let errorCount = 0;
+        const errors = [];
         
-        if (success) {
-            // Affichage de confirmation
-            const message = `Bouton "${buttonName}" sauvegardé avec succès!\n\nRequêtes incluses (${selectedQueryNames.length}):\n${selectedQueryNames.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\nIDs sauvegardés: [${querySequence.join(', ')}]`;
+        for (const record of allRecords) {
+            try {
+                const success = await ButtonManager.addButton(record, newButton);
+                if (success) {
+                    successCount++;
+                    console.log(`✓ Bouton sauvegardé dans l'enregistrement ID ${record.id}`);
+                } else {
+                    errorCount++;
+                    console.warn(`✗ Échec sauvegarde dans l'enregistrement ID ${record.id}`);
+                }
+            } catch (error) {
+                errorCount++;
+                const errorMsg = `Enregistrement ID ${record.id}: ${error.message}`;
+                errors.push(errorMsg);
+                console.error(`✗ Erreur sauvegarde dans l'enregistrement ID ${record.id}:`, error);
+            }
+        }
+        
+        // Affichage du résultat
+        if (successCount > 0) {
+            let message = `Bouton "${buttonName}" sauvegardé avec succès!\n\n`;
+            message += `✓ Sauvegardé dans ${successCount} enregistrement(s)\n`;
+            if (errorCount > 0) {
+                message += `✗ Échecs: ${errorCount} enregistrement(s)\n`;
+            }
+            message += `\nRequêtes incluses (${selectedQueryNames.length}):\n${selectedQueryNames.map((q, i) => `${i + 1}. ${q}`).join('\n')}`;
+            message += `\n\nIDs sauvegardés: [${querySequence.join(', ')}]`;
+            
             alert(message);
             
             // Réinitialiser le formulaire
             document.getElementById('button-name').value = '';
             dropzone.innerHTML = initialPlaceholder;
             
-            console.log('Bouton sauvegardé avec succès');
+            console.log(`Bouton sauvegardé avec succès dans ${successCount}/${allRecords.length} enregistrements`);
         } else {
-            alert('Erreur lors de la sauvegarde du bouton. Vérifiez la console pour plus de détails.');
+            let message = `Erreur: Impossible de sauvegarder le bouton "${buttonName}"\n\n`;
+            message += `Échecs dans tous les ${errorCount} enregistrements`;
+            if (errors.length > 0) {
+                message += `\n\nErreurs:\n${errors.slice(0, 3).join('\n')}`;
+                if (errors.length > 3) {
+                    message += `\n... et ${errors.length - 3} autres erreurs`;
+                }
+            }
+            
+            alert(message);
         }
         
     } catch (error) {

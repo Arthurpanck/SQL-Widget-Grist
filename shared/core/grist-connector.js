@@ -17,6 +17,11 @@ function onRecord(record, mappings) {
     
     console.log("Champs mappés - SQL:", sqlField, "Python:", pythonfield, "Nom requête:", requestNameField, "Config bouton:", buttonConfigField);
     
+    // VÉRIFICATION: La colonne buttonconfig est-elle mappée ?
+    if (!buttonConfigField) {
+        console.warn("ATTENTION: La colonne 'Configuration Boutons' n'est pas mappée - les boutons ne pourront pas être sauvegardés");
+    }
+    
     // VÉRIFICATION CRITIQUE: Les deux colonnes doivent être différentes
     if (sqlField === pythonfield) {
         console.error("ERREUR: Les deux colonnes sont mappées sur le même champ:", sqlField);
@@ -128,3 +133,18 @@ function configureGristSettings() {
         ],
     });
 }
+
+/**
+ * Fonction de debug pour vérifier les mappings
+ */
+function debugMappings() {
+    console.log("=== DEBUG MAPPINGS ===");
+    console.log("sqlField:", sqlField);
+    console.log("pythonfield:", pythonfield);
+    console.log("requestNameField:", requestNameField);
+    console.log("buttonConfigField:", buttonConfigField);
+    console.log("=====================");
+}
+
+// Exposer la fonction de debug globalement
+window.debugMappings = debugMappings;
