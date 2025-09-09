@@ -7,6 +7,7 @@ let oldRecord = null;
 let sqlField = null;
 let pythonfield = null;
 let requestNameField = null;
+let buttonConfigField = null;
 let editor = null;
 let availableTables = [];
 let tableColumnsData = {};

@@ -13,8 +13,14 @@ function onRecord(record, mappings) {
     sqlField = mappings["sqlField"];
     pythonfield = mappings["pythonfield"];
     requestNameField = mappings["RequestName"];
+    buttonConfigField = mappings["buttonconfig"];
     
-    console.log("Champs mappés - SQL:", sqlField, "Python:", pythonfield, "Nom requête:", requestNameField);
+    console.log("Champs mappés - SQL:", sqlField, "Python:", pythonfield, "Nom requête:", requestNameField, "Config bouton:", buttonConfigField);
+    
+    // VÉRIFICATION: La colonne buttonconfig est-elle mappée ?
+    if (!buttonConfigField) {
+        console.warn("ATTENTION: La colonne 'Configuration Boutons' n'est pas mappée - les boutons ne pourront pas être sauvegardés");
+    }
     
     // VÉRIFICATION CRITIQUE: Les deux colonnes doivent être différentes
     if (sqlField === pythonfield) {
@@ -69,8 +75,16 @@ function onRecords(records, mappings) {
     allRecords = records || [];
     console.log(`${allRecords.length} enregistrements reçus pour la sélection dynamique`);
     
-    // Mettre à jour la liste déroulante
-    updateQuerySelector();
+    // Mettre à jour l'affichage des requêtes selon le contexte
+    if (typeof updateQuerySelector === 'function') {
+        // Contexte sql-editor
+        updateQuerySelector();
+    } else if (typeof updateQueriesDisplay === 'function') {
+        // Contexte button-flow-editor
+        updateQueriesDisplay();
+    } else {
+        console.warn('Aucune fonction de mise à jour des requêtes disponible');
+    }
 }
 
 /**
@@ -107,7 +121,30 @@ function configureGristSettings() {
                 type: "Text",
                 description: "Nom de la requête sélectionnée",
                 allowMultiple: false,
+            },
+            {
+                name: "buttonconfig",
+                title: "Configuration Boutons",
+                optional: true,
+                type: "Text",
+                description: "Configuration JSON des boutons personnalisés",
+                allowMultiple: false,
             }
         ],
     });
 }
+
+/**
+ * Fonction de debug pour vérifier les mappings
+ */
+function debugMappings() {
+    console.log("=== DEBUG MAPPINGS ===");
+    console.log("sqlField:", sqlField);
+    console.log("pythonfield:", pythonfield);
+    console.log("requestNameField:", requestNameField);
+    console.log("buttonConfigField:", buttonConfigField);
+    console.log("=====================");
+}
+
+// Exposer la fonction de debug globalement
+window.debugMappings = debugMappings;

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <title>Test Mapping ButtonConfig</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Mock Grist API pour tester le mapping -->
+    <script>
+        window.grist = {
+            ready: function(options) {
+                console.log('Grist ready appelé avec options:', options);
+                
+                // Vérifier que la colonne buttonconfig est bien déclarée
+                const buttonColumn = options.columns.find(col => col.name === 'buttonconfig');
+                if (buttonColumn) {
+                    console.log('✓ Colonne buttonconfig trouvée:', buttonColumn);
+                } else {
+                    console.error('✗ Colonne buttonconfig NON TROUVÉE dans:', options.columns);
+                }
+                
+                // Simuler le mapping après un délai
+                setTimeout(() => this.simulateMapping(), 1000);
+            },
+            
+            onRecord: function(callback) { this._onRecord = callback; },
+            onNewRecord: function(callback) { this._onNewRecord = callback; },
+            onRecords: function(callback) { this._onRecords = callback; },
+            
+            simulateMapping: function() {
+                console.log('=== SIMULATION MAPPING ===');
+                
+                const mockMappings = {
+                    sqlField: "Code_SQL",
+                    pythonfield: "Metadata_Python", 
+                    RequestName: "Nom_Requete",
+                    buttonconfig: "Config_Boutons"  // Mapping de la nouvelle colonne
+                };
+                
+                const mockRecord = {
+                    id: 1,
+                    Code_SQL: "SELECT * FROM test",
+                    Metadata_Python: "{}",
+                    Nom_Requete: "Test Query",
+                    Config_Boutons: '[{"name":"Test Button","sequence":[1,2]}]'
+                };
+                
+                console.log('Mappings envoyés:', mockMappings);
+                console.log('Record envoyé:', mockRecord);
+                
+                // Déclencher onRecord
+                if (this._onRecord) {
+                    this._onRecord(mockRecord, mockMappings);
+                }
+            }
+        };
+    </script>
+    
+    <!-- Charger les modules -->
+    <script src="shared/core/data-manager.js"></script>
+    <script src="shared/core/grist-connector.js"></script>
+    <script src="shared/core/button-manager.js"></script>
+</head>
+<body class="p-8 bg-gray-100">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Test Mapping ButtonConfig</h1>
+        
+        <div class="space-y-4">
+            <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-500">
+                <h2 class="font-semibold text-blue-800 mb-2">Test 1: Vérification Configuration Grist</h2>
+                <button onclick="testGristConfig()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Tester config
+                </button>
+                <div id="test1-results" class="mt-2 text-sm"></div>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded border-l-4 border-green-500">
+                <h2 class="font-semibold text-green-800 mb-2">Test 2: Vérification Mappings</h2>
+                <button onclick="testMappings()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    Vérifier mappings
+                </button>
+                <div id="test2-results" class="mt-2 text-sm"></div>
+            </div>
+            
+            <div class="bg-yellow-50 p-4 rounded border-l-4 border-yellow-500">
+                <h2 class="font-semibold text-yellow-800 mb-2">Test 3: Test ButtonManager</h2>
+                <button onclick="testButtonManager()" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
+                    Tester ButtonManager
+                </button>
+                <div id="test3-results" class="mt-2 text-sm"></div>
+            </div>
+            
+            <div class="bg-gray-100 p-4 rounded">
+                <h3 class="font-semibold mb-2">Console Logs:</h3>
+                <div id="console-logs" class="text-xs font-mono bg-black text-green-400 p-2 rounded h-32 overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Intercepter les logs
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addLog(type, ...args) {
+            const logDiv = document.getElementById('console-logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
+            const color = type === 'error' ? 'red' : type === 'warn' ? 'yellow' : 'green';
+            logDiv.innerHTML += `<div class="text-${color}-400">[${timestamp}] ${type.toUpperCase()}: ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        console.log = (...args) => { originalLog(...args); addLog('log', ...args); };
+        console.error = (...args) => { originalError(...args); addLog('error', ...args); };
+        console.warn = (...args) => { originalWarn(...args); addLog('warn', ...args); };
+        
+        // Tests
+        function testGristConfig() {
+            const results = document.getElementById('test1-results');
+            
+            if (typeof grist !== 'undefined') {
+                results.innerHTML = '<span class="text-green-600">✓ Grist mock disponible</span>';
+                
+                // Déclencher la configuration
+                configureGristSettings();
+            } else {
+                results.innerHTML = '<span class="text-red-600">✗ Grist mock non disponible</span>';
+            }
+        }
+        
+        function testMappings() {
+            const results = document.getElementById('test2-results');
+            
+            if (typeof debugMappings === 'function') {
+                debugMappings();
+                
+                const mappingStatus = `
+                    <div class="space-y-1">
+                        <div>sqlField: <span class="font-mono">${sqlField || 'null'}</span></div>
+                        <div>pythonfield: <span class="font-mono">${pythonfield || 'null'}</span></div>
+                        <div>requestNameField: <span class="font-mono">${requestNameField || 'null'}</span></div>
+                        <div>buttonConfigField: <span class="font-mono text-blue-600">${buttonConfigField || 'null'}</span></div>
+                    </div>
+                `;
+                
+                results.innerHTML = mappingStatus;
+            } else {
+                results.innerHTML = '<span class="text-red-600">✗ debugMappings non disponible</span>';
+            }
+        }
+        
+        function testButtonManager() {
+            const results = document.getElementById('test3-results');
+            
+            if (typeof ButtonManager !== 'undefined' && buttonConfigField) {
+                // Test avec un record mock contenant buttonconfig
+                const mockRecord = {
+                    id: 1,
+                    [buttonConfigField]: '[{"name":"Test","sequence":[1,2,3]}]'
+                };
+                
+                const config = ButtonManager.readButtonConfig(mockRecord);
+                
+                results.innerHTML = `
+                    <div class="space-y-1">
+                        <div>ButtonManager: <span class="text-green-600">✓ Disponible</span></div>
+                        <div>buttonConfigField: <span class="text-green-600">✓ Mappé</span></div>
+                        <div>Config lue: <span class="font-mono">${JSON.stringify(config)}</span></div>
+                    </div>
+                `;
+            } else {
+                const issues = [];
+                if (typeof ButtonManager === 'undefined') issues.push('ButtonManager non disponible');
+                if (!buttonConfigField) issues.push('buttonConfigField non mappé');
+                
+                results.innerHTML = `<span class="text-red-600">✗ ${issues.join(', ')}</span>`;
+            }
+        }
+        
+        // Auto-initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Test mapping buttonconfig initialisé');
+            
+            // Auto-test après un délai
+            setTimeout(() => {
+                testGristConfig();
+                
+                setTimeout(() => {
+                    testMappings();
+                    testButtonManager();
+                }, 2000);
+            }, 500);
+        });
+    </script>
+</body>
+</html>

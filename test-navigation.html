@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <title>Test Navigation Toggle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="shared/ui/page-navigation.js"></script>
+</head>
+<body class="p-8 bg-gray-100">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Test du Système de Navigation</h1>
+        
+        <div class="space-y-6">
+            <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-500">
+                <h2 class="font-semibold text-blue-800">Test de Détection de Page</h2>
+                <div id="detection-results" class="mt-2 text-sm text-blue-700"></div>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded border-l-4 border-green-500">
+                <h2 class="font-semibold text-green-800">Test de Navigation</h2>
+                <div class="mt-4 flex items-center space-x-4">
+                    <span>Page de destination:</span>
+                    <span id="target-page" class="font-mono bg-gray-200 px-2 py-1 rounded"></span>
+                    
+                    <div class="flex items-center space-x-2">
+                        <span id="toggle-label" class="text-sm font-medium text-gray-700">Test Label</span>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 appearance-none cursor-pointer" 
+                                   id="toggle" name="toggle" type="checkbox"/>
+                            <label class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer" for="toggle"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-yellow-50 p-4 rounded border-l-4 border-yellow-500">
+                <h2 class="font-semibold text-yellow-800">Liens de Test Direct</h2>
+                <div class="mt-4 space-x-4">
+                    <a href="button-flow-editor/index.html" class="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700">
+                        → Button Flow Editor
+                    </a>
+                    <a href="sql-editor/index.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        → SQL Editor
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #0d9488;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #0d9488;
+        }
+    </style>
+
+    <script>
+        // Test du système de navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            // Créer une instance de navigation
+            const navigation = new PageNavigation();
+            
+            // Afficher les résultats de détection
+            const detectionResults = document.getElementById('detection-results');
+            const targetPage = document.getElementById('target-page');
+            
+            detectionResults.innerHTML = `
+                <strong>Page actuelle détectée:</strong> ${navigation.currentPage}<br>
+                <strong>Page de destination:</strong> ${navigation.getTargetPage()}<br>
+                <strong>Label de destination:</strong> ${navigation.getTargetLabel()}
+            `;
+            
+            targetPage.textContent = navigation.getTargetPage();
+            
+            // Configurer le toggle
+            navigation.setupToggle('toggle', 'toggle-label');
+            
+            // Test manuel
+            window.testNavigation = navigation;
+            console.log('Navigation de test configurée:', navigation);
+        });
+    </script>
+</body>
+</html>

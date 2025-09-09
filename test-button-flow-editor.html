@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Test Button Flow Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    
+    <!-- Mock Grist API pour les tests -->
+    <script>
+        // Mock de l'API Grist pour les tests
+        window.grist = {
+            ready: function(options) {
+                console.log('Grist ready mock appelé avec:', options);
+                // Simuler des données après un petit délai
+                setTimeout(() => {
+                    this.triggerOnRecords();
+                }, 1000);
+            },
+            onRecord: function(callback) { this._onRecord = callback; },
+            onNewRecord: function(callback) { this._onNewRecord = callback; },
+            onRecords: function(callback) { this._onRecords = callback; },
+            
+            // Simuler des données de test
+            triggerOnRecords: function() {
+                if (this._onRecords) {
+                    const mockRecords = [
+                        { id: 1, RequestName: "Requête Test 1", sqlField: "SELECT * FROM users", pythonfield: "{}" },
+                        { id: 2, RequestName: "Requête Test 2", sqlField: "SELECT * FROM orders", pythonfield: "{}" },
+                        { id: 3, RequestName: "Requête Test 3", sqlField: "SELECT * FROM products", pythonfield: "{}" }
+                    ];
+                    const mockMappings = {
+                        RequestName: "RequestName",
+                        sqlField: "sqlField", 
+                        pythonfield: "pythonfield"
+                    };
+                    this._onRecords(mockRecords, mockMappings);
+                }
+            }
+        };
+    </script>
+    
+    <!-- Charger les scripts dans l'ordre correct -->
+    <script src="shared/core/data-manager.js"></script>
+    <script src="shared/core/grist-connector.js"></script>
+    <script src="shared/ui/ui-helpers.js"></script>
+    <script src="button-flow-editor/button-flow-editor.js"></script>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-4 md:p-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Test Button Flow Editor</h1>
+        <p class="text-gray-500 mb-6 md:mb-8">Test des fonctionnalités de récupération des noms de requêtes.</p>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+            <div>
+                <h2 class="text-lg md:text-xl font-semibold text-gray-700 mb-4">Requêtes disponibles</h2>
+                <div id="loading-message" class="text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                    <p class="mt-2 text-gray-500">Chargement des requêtes...</p>
+                </div>
+                <div id="queries-container" class="query-grid hidden"></div>
+                <div id="no-queries-message" class="text-center py-8 text-gray-500 hidden">
+                    <span class="material-icons text-4xl text-gray-300 mb-2">search_off</span>
+                    <p>Aucune requête disponible</p>
+                </div>
+            </div>
+            
+            <div>
+                <h2 class="text-lg md:text-xl font-semibold text-gray-700 mb-4">Test Zone</h2>
+                <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-6 min-h-[300px]" id="dropzone">
+                    <p class="text-center text-gray-400">Zone de test - les requêtes devraient apparaître à gauche.</p>
+                </div>
+                
+                <div class="mt-6">
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" onclick="testConnections()">
+                        Tester les connexions
+                    </button>
+                    <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg ml-2" onclick="simulateData()">
+                        Simuler données
+                    </button>
+                </div>
+                
+                <div class="mt-4 p-4 bg-gray-100 rounded text-sm">
+                    <h3 class="font-semibold mb-2">État des tests:</h3>
+                    <div id="test-results"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fonctions de test
+        function testConnections() {
+            const results = document.getElementById('test-results');
+            let output = '';
+            
+            output += `• grist-connector chargé: ${typeof configureGristSettings === 'function'}<br>`;
+            output += `• updateQueriesDisplay disponible: ${typeof updateQueriesDisplay === 'function'}<br>`;
+            output += `• allRecords: ${typeof allRecords !== 'undefined' ? allRecords.length + ' éléments' : 'undefined'}<br>`;
+            output += `• requestNameField: ${typeof requestNameField !== 'undefined' ? requestNameField : 'undefined'}<br>`;
+            
+            results.innerHTML = output;
+        }
+        
+        function simulateData() {
+            if (typeof grist.triggerOnRecords === 'function') {
+                grist.triggerOnRecords();
+                const results = document.getElementById('test-results');
+                results.innerHTML += '<br>• Simulation des données déclenchée';
+            }
+        }
+        
+        // Lancer le test automatiquement
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                testConnections();
+                simulateData();
+            }, 2000);
+        });
+    </script>
+    
+    <style>
+        .query-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 0.75rem;
+        }
+    </style>
+</body>
+</html>

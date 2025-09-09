@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <title>Test Sauvegarde Boutons</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Mock Grist API pour les tests -->
+    <script>
+        // Mock de l'API Grist pour les tests
+        window.grist = {
+            ready: function(options) {
+                console.log('Grist ready mock appelé avec:', options);
+                setTimeout(() => this.triggerMockData(), 500);
+            },
+            onRecord: function(callback) { this._onRecord = callback; },
+            onNewRecord: function(callback) { this._onNewRecord = callback; },
+            onRecords: function(callback) { this._onRecords = callback; },
+            selectedTable: {
+                update: async function(updateData) {
+                    console.log('Mock update appelé:', updateData);
+                    // Simuler une sauvegarde réussie
+                    return { success: true };
+                }
+            },
+            
+            // Données de test
+            triggerMockData: function() {
+                const mockRecords = [
+                    { id: 1, RequestName: "Requête Test 1", sqlField: "SELECT * FROM users", pythonfield: "{}", buttonconfig: "" },
+                    { id: 2, RequestName: "Requête Test 2", sqlField: "SELECT * FROM orders", pythonfield: "{}", buttonconfig: "" },
+                    { id: 3, RequestName: "Requête Test 3", sqlField: "SELECT * FROM products", pythonfield: "{}", buttonconfig: "" }
+                ];
+                const mockMappings = {
+                    RequestName: "RequestName",
+                    sqlField: "sqlField", 
+                    pythonfield: "pythonfield",
+                    buttonconfig: "buttonconfig"
+                };
+                
+                // Déclencher onRecords
+                if (this._onRecords) {
+                    this._onRecords(mockRecords, mockMappings);
+                }
+                
+                // Déclencher onRecord avec le premier enregistrement
+                if (this._onRecord) {
+                    this._onRecord(mockRecords[0], mockMappings);
+                }
+            }
+        };
+    </script>
+    
+    <!-- Charger les modules nécessaires -->
+    <script src="shared/core/data-manager.js"></script>
+    <script src="shared/core/button-manager.js"></script>
+</head>
+<body class="p-8 bg-gray-100">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Test du Système de Sauvegarde des Boutons</h1>
+        
+        <div class="space-y-6">
+            <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-500">
+                <h2 class="font-semibold text-blue-800 mb-4">Test 1: Lecture Configuration Vide</h2>
+                <button onclick="testReadEmpty()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Tester lecture vide
+                </button>
+                <div id="test1-results" class="mt-2 text-sm"></div>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded border-l-4 border-green-500">
+                <h2 class="font-semibold text-green-800 mb-4">Test 2: Sauvegarde Nouveau Bouton</h2>
+                <div class="space-x-2 mb-2">
+                    <input id="test-button-name" placeholder="Nom du bouton" class="border px-2 py-1 rounded" value="Mon Bouton Test">
+                    <button onclick="testSaveButton()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                        Sauvegarder bouton
+                    </button>
+                </div>
+                <div id="test2-results" class="mt-2 text-sm"></div>
+            </div>
+            
+            <div class="bg-yellow-50 p-4 rounded border-l-4 border-yellow-500">
+                <h2 class="font-semibold text-yellow-800 mb-4">Test 3: Validation des Boutons</h2>
+                <button onclick="testValidation()" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
+                    Tester validation
+                </button>
+                <div id="test3-results" class="mt-2 text-sm"></div>
+            </div>
+            
+            <div class="bg-purple-50 p-4 rounded border-l-4 border-purple-500">
+                <h2 class="font-semibold text-purple-800 mb-4">Test 4: État Global</h2>
+                <button onclick="showGlobalState()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+                    Afficher état
+                </button>
+                <div id="test4-results" class="mt-2 text-sm"></div>
+            </div>
+            
+            <div class="bg-gray-100 p-4 rounded">
+                <h3 class="font-semibold mb-2">Logs Console:</h3>
+                <div id="console-logs" class="text-xs font-mono bg-black text-green-400 p-2 rounded h-32 overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Intercepter les logs pour affichage
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addLog(type, ...args) {
+            const logDiv = document.getElementById('console-logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
+            logDiv.innerHTML += `<div class="text-${type === 'error' ? 'red' : type === 'warn' ? 'yellow' : 'green'}-400">[${timestamp}] ${type.toUpperCase()}: ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        console.log = (...args) => { originalLog(...args); addLog('log', ...args); };
+        console.error = (...args) => { originalError(...args); addLog('error', ...args); };
+        console.warn = (...args) => { originalWarn(...args); addLog('warn', ...args); };
+        
+        // Variables globales simulées
+        let buttonConfigField = 'buttonconfig';
+        let allRecords = [];
+        let oldRecord = null;
+        
+        // Tests
+        function testReadEmpty() {
+            const results = document.getElementById('test1-results');
+            try {
+                const emptyRecord = { buttonconfig: "" };
+                const config = ButtonManager.readButtonConfig(emptyRecord);
+                results.innerHTML = `<span class="text-green-600">✓ Success: Configuration vide lue correctement (${config.length} boutons)</span>`;
+            } catch (error) {
+                results.innerHTML = `<span class="text-red-600">✗ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function testSaveButton() {
+            const results = document.getElementById('test2-results');
+            const buttonName = document.getElementById('test-button-name').value;
+            
+            try {
+                const testRecord = { id: 1, buttonconfig: "[]" };
+                const testButton = {
+                    name: buttonName,
+                    sequence: [1, 2, 3]
+                };
+                
+                const success = await ButtonManager.addButton(testRecord, testButton);
+                
+                if (success) {
+                    results.innerHTML = `<span class="text-green-600">✓ Success: Bouton "${buttonName}" sauvegardé</span>`;
+                } else {
+                    results.innerHTML = `<span class="text-red-600">✗ Error: Échec de la sauvegarde</span>`;
+                }
+            } catch (error) {
+                results.innerHTML = `<span class="text-red-600">✗ Error: ${error.message}</span>`;
+            }
+        }
+        
+        function testValidation() {
+            const results = document.getElementById('test3-results');
+            try {
+                const testButton = {
+                    name: "Test Validation",
+                    sequence: [1, 2, 999] // 999 n'existe pas
+                };
+                
+                const mockRecords = [
+                    { id: 1 }, { id: 2 }, { id: 3 }
+                ];
+                
+                const validation = ButtonManager.validateButton(testButton, mockRecords);
+                
+                results.innerHTML = `
+                    <div class="space-y-1">
+                        <div>Valide: <span class="${validation.isValid ? 'text-green-600' : 'text-red-600'}">${validation.isValid ? 'Oui' : 'Non'}</span></div>
+                        <div>IDs valides: [${validation.validIds.join(', ')}]</div>
+                        <div>IDs manquants: [${validation.missingIds.join(', ')}]</div>
+                    </div>
+                `;
+            } catch (error) {
+                results.innerHTML = `<span class="text-red-600">✗ Error: ${error.message}</span>`;
+            }
+        }
+        
+        function showGlobalState() {
+            const results = document.getElementById('test4-results');
+            results.innerHTML = `
+                <div class="space-y-1 text-xs">
+                    <div><strong>buttonConfigField:</strong> ${buttonConfigField}</div>
+                    <div><strong>allRecords length:</strong> ${allRecords.length}</div>
+                    <div><strong>oldRecord:</strong> ${oldRecord ? 'Défini' : 'null'}</div>
+                    <div><strong>ButtonManager disponible:</strong> ${typeof ButtonManager !== 'undefined' ? 'Oui' : 'Non'}</div>
+                    <div><strong>grist mock:</strong> ${typeof grist !== 'undefined' ? 'Oui' : 'Non'}</div>
+                </div>
+            `;
+        }
+        
+        // Auto-initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Test de sauvegarde des boutons initialisé');
+            
+            // Simuler quelques données
+            allRecords = [
+                { id: 1, RequestName: "Requête 1" },
+                { id: 2, RequestName: "Requête 2" },
+                { id: 3, RequestName: "Requête 3" }
+            ];
+            
+            oldRecord = { id: 1, buttonconfig: "[]" };
+            
+            // Initialiser Grist mock
+            if (typeof grist !== 'undefined') {
+                grist.ready({ requiredAccess: 'full' });
+            }
+            
+            showGlobalState();
+        });
+    </script>
+</body>
+</html>
