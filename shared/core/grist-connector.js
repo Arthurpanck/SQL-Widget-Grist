@@ -13,8 +13,9 @@ function onRecord(record, mappings) {
     sqlField = mappings["sqlField"];
     pythonfield = mappings["pythonfield"];
     requestNameField = mappings["RequestName"];
+    buttonConfigField = mappings["buttonconfig"];
     
-    console.log("Champs mappés - SQL:", sqlField, "Python:", pythonfield, "Nom requête:", requestNameField);
+    console.log("Champs mappés - SQL:", sqlField, "Python:", pythonfield, "Nom requête:", requestNameField, "Config bouton:", buttonConfigField);
     
     // VÉRIFICATION CRITIQUE: Les deux colonnes doivent être différentes
     if (sqlField === pythonfield) {
@@ -114,6 +115,14 @@ function configureGristSettings() {
                 optional: false,
                 type: "Text",
                 description: "Nom de la requête sélectionnée",
+                allowMultiple: false,
+            },
+            {
+                name: "buttonconfig",
+                title: "Configuration Boutons",
+                optional: true,
+                type: "Text",
+                description: "Configuration JSON des boutons personnalisés",
                 allowMultiple: false,
             }
         ],

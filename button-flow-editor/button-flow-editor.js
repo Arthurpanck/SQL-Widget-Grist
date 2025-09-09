@@ -217,7 +217,7 @@ function updateConnectors() {
 /**
  * Gère la création du bouton avec les requêtes sélectionnées
  */
-function handleCreateButton() {
+async function handleCreateButton() {
     const buttonName = document.getElementById('button-name').value.trim();
     const dropzone = document.getElementById('dropzone');
     
@@ -226,7 +226,8 @@ function handleCreateButton() {
         return;
     }
     
-    const selectedQueries = Array.from(dropzone.querySelectorAll('.bg-white')).map(item => {
+    // Récupérer les noms des requêtes sélectionnées
+    const selectedQueryNames = Array.from(dropzone.querySelectorAll('.bg-white')).map(item => {
         return item.querySelector('p').textContent;
     });
     
@@ -235,31 +236,97 @@ function handleCreateButton() {
         return;
     }
     
-    if (selectedQueries.length === 0) {
+    if (selectedQueryNames.length === 0) {
         alert('Veuillez sélectionner au moins une requête');
         return;
     }
     
-    // Créer l'objet représentant le bouton
-    const buttonConfig = {
-        name: buttonName,
-        queries: selectedQueries,
-        createdAt: new Date().toISOString(),
-        queryCount: selectedQueries.length
-    };
+    // Vérifier qu'on a un enregistrement courant pour sauvegarder
+    if (!oldRecord) {
+        alert('Aucun enregistrement sélectionné pour sauvegarder le bouton');
+        return;
+    }
     
-    console.log('Configuration du bouton créé:', buttonConfig);
+    try {
+        // Convertir les noms de requêtes en IDs de lignes
+        const querySequence = convertQueryNamesToIds(selectedQueryNames);
+        
+        if (querySequence.length === 0) {
+            alert('Erreur: Impossible de trouver les IDs des requêtes sélectionnées');
+            return;
+        }
+        
+        // Vérifier si des requêtes ont été perdues dans la conversion
+        if (querySequence.length < selectedQueryNames.length) {
+            const missingCount = selectedQueryNames.length - querySequence.length;
+            const confirmMessage = `Attention: ${missingCount} requête(s) n'ont pas pu être trouvées.\nVoulez-vous continuer avec les ${querySequence.length} requêtes trouvées ?`;
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+        }
+        
+        // Créer l'objet bouton avec format JSON requis
+        const newButton = {
+            name: buttonName,
+            sequence: querySequence
+        };
+        
+        // Valider le bouton avant sauvegarde
+        if (typeof ButtonManager !== 'undefined') {
+            const validation = ButtonManager.validateButton(newButton, allRecords);
+            if (!validation.isValid) {
+                console.warn('Bouton avec IDs potentiellement invalides:', validation);
+            }
+        }
+        
+        console.log('Nouveau bouton à sauvegarder:', newButton);
+        
+        // Sauvegarder via ButtonManager
+        const success = await ButtonManager.addButton(oldRecord, newButton);
+        
+        if (success) {
+            // Affichage de confirmation
+            const message = `Bouton "${buttonName}" sauvegardé avec succès!\n\nRequêtes incluses (${selectedQueryNames.length}):\n${selectedQueryNames.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\nIDs sauvegardés: [${querySequence.join(', ')}]`;
+            alert(message);
+            
+            // Réinitialiser le formulaire
+            document.getElementById('button-name').value = '';
+            dropzone.innerHTML = initialPlaceholder;
+            
+            console.log('Bouton sauvegardé avec succès');
+        } else {
+            alert('Erreur lors de la sauvegarde du bouton. Vérifiez la console pour plus de détails.');
+        }
+        
+    } catch (error) {
+        console.error('Erreur lors de la création du bouton:', error);
+        alert('Erreur lors de la création du bouton: ' + error.message);
+    }
+}
+
+/**
+ * Convertit les noms de requêtes en IDs de lignes
+ * @param {Array} queryNames - Noms des requêtes sélectionnées
+ * @returns {Array} - IDs des lignes correspondantes
+ */
+function convertQueryNamesToIds(queryNames) {
+    const queryIds = [];
     
-    // Ici vous pourrez ajouter la logique pour sauvegarder le bouton
-    // Par exemple dans une table Grist ou dans localStorage
+    queryNames.forEach(queryName => {
+        // Trouver l'enregistrement avec ce nom de requête
+        const matchingRecord = allRecords.find(record => {
+            return record[requestNameField] === queryName;
+        });
+        
+        if (matchingRecord) {
+            queryIds.push(matchingRecord.id);
+            console.log(`Requête "${queryName}" → ID ${matchingRecord.id}`);
+        } else {
+            console.warn(`Requête "${queryName}" non trouvée dans les enregistrements`);
+        }
+    });
     
-    // Affichage de confirmation
-    const message = `Bouton "${buttonName}" créé avec succès!\n\nRequêtes incluses (${selectedQueries.length}):\n${selectedQueries.map((q, i) => `${i + 1}. ${q}`).join('\n')}`;
-    alert(message);
-    
-    // Optionnel: réinitialiser le formulaire
-    document.getElementById('button-name').value = '';
-    dropzone.innerHTML = initialPlaceholder;
+    return queryIds;
 }
 
 // ================================================================================
