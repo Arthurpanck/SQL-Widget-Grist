@@ -14,8 +14,9 @@ function onRecord(record, mappings) {
     pythonfield = mappings["pythonfield"];
     requestNameField = mappings["RequestName"];
     buttonConfigField = mappings["buttonconfig"];
+    destinationTableField = mappings["destinationTable"];
     
-    console.log("Champs mappés - SQL:", sqlField, "Python:", pythonfield, "Nom requête:", requestNameField, "Config bouton:", buttonConfigField);
+    console.log("Champs mappés - SQL:", sqlField, "Python:", pythonfield, "Nom requête:", requestNameField, "Config bouton:", buttonConfigField, "Table destination:", destinationTableField);
     
     // VÉRIFICATION: La colonne buttonconfig est-elle mappée ?
     if (!buttonConfigField) {
@@ -128,6 +129,14 @@ function configureGristSettings() {
                 optional: true,
                 type: "Text",
                 description: "Configuration JSON des boutons personnalisés",
+                allowMultiple: false,
+            },
+            {
+                name: "destinationTable",
+                title: "Table de destination",
+                optional: true,
+                type: "Text",
+                description: "Table de destination par défaut pour cette requête",
                 allowMultiple: false,
             }
         ],

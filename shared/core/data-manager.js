@@ -8,6 +8,7 @@ let sqlField = null;
 let pythonfield = null;
 let requestNameField = null;
 let buttonConfigField = null;
+let destinationTableField = null;
 let editor = null;
 let availableTables = [];
 let tableColumnsData = {};

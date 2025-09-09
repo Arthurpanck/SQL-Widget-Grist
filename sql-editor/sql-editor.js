@@ -19,9 +19,20 @@ function save(record) {
         
         console.log("Sauvegarde du SQL (avec IDs):", sqlWithIds.substring(0, 100) + "...");
         
+        // Préparer les champs à sauvegarder
+        const fieldsToUpdate = {[sqlField]: sqlWithIds};
+        
+        // Ajouter la table de destination si elle est sélectionnée et si le champ existe
+        const targetTableSelect = document.getElementById('targetTable');
+        if (targetTableSelect && targetTableSelect.value && destinationTableField) {
+            const selectedDestinationTable = targetTableSelect.value;
+            fieldsToUpdate[destinationTableField] = selectedDestinationTable;
+            console.log("Sauvegarde de la table de destination:", selectedDestinationTable);
+        }
+        
         grist.selectedTable.update({
             id: record.id, 
-            fields: {[sqlField]: sqlWithIds}
+            fields: fieldsToUpdate
         });
         
         updateStatus('saved', 'Sauvegardé avec succès');

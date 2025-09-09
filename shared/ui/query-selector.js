@@ -85,6 +85,13 @@ function loadQueryIntoEditor(record) {
         updateTableSelector();
     }
     
+    // Charger la table de destination par défaut si définie
+    if (destinationTableField && record[destinationTableField]) {
+        const defaultDestinationTable = record[destinationTableField];
+        console.log("Table de destination par défaut trouvée:", defaultDestinationTable);
+        setDefaultDestinationTable(defaultDestinationTable);
+    }
+    
     // Charger le contenu SQL
     if (editor) {
         editor.setReadOnly(false);
@@ -125,4 +132,33 @@ SELECT * FROM ma_table LIMIT 10;`;
     
     const tableCount = Object.keys(tableColumns).length;
     updateStatus('connected', `Requête chargée - ${tableCount} tables Python disponibles`);
+}
+
+/**
+ * Définit la table de destination par défaut dans la liste déroulante
+ */
+function setDefaultDestinationTable(tableName) {
+    const targetTableSelect = document.getElementById('targetTable');
+    if (!targetTableSelect) {
+        console.warn("Élément targetTable non trouvé pour définir la table par défaut");
+        return;
+    }
+    
+    // Chercher l'option correspondante dans la liste
+    const options = targetTableSelect.options;
+    for (let i = 0; i < options.length; i++) {
+        if (options[i].value === tableName) {
+            targetTableSelect.selectedIndex = i;
+            console.log("Table de destination par défaut définie:", tableName);
+            return;
+        }
+    }
+    
+    // Si la table n'est pas dans la liste, l'ajouter temporairement
+    console.warn("Table de destination par défaut non trouvée dans la liste, ajout temporaire:", tableName);
+    const tempOption = document.createElement('option');
+    tempOption.value = tableName;
+    tempOption.textContent = tableName + ' (par défaut)';
+    targetTableSelect.appendChild(tempOption);
+    targetTableSelect.value = tableName;
 }

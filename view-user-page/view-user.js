@@ -184,6 +184,12 @@ async function executeSingleQuery(record, sqlQuery) {
             console.log('Métadonnées chargées pour la requête:', Object.keys(tableData).length, 'tables');
         }
         
+        // Vérifier si une table de destination est définie
+        const destinationTable = record[destinationTableField];
+        if (!destinationTable) {
+            console.warn('Aucune table de destination définie pour cette requête, exécution sans application des résultats');
+        }
+        
         // Convertir les labels en IDs pour l'exécution (comme dans sql-executor)
         const sqlQueryWithIds = convertSqlLabelsToIds(sqlQuery);
         
@@ -191,6 +197,7 @@ async function executeSingleQuery(record, sqlQuery) {
         const sqlQueryForExecution = convertSqlIdsToLabels(sqlQueryWithIds);
         
         console.log('SQL final pour exécution:', sqlQueryForExecution.substring(0, 100) + '...');
+        console.log('Table de destination:', destinationTable || 'Aucune');
         
         // Obtenir le token d'accès
         const tokenInfo = await grist.docApi.getAccessToken({ readOnly: false });
@@ -216,13 +223,64 @@ async function executeSingleQuery(record, sqlQuery) {
         
         console.log(`Requête exécutée avec succès, ${sqlResult.records ? sqlResult.records.length : 0} résultats`);
         
-        // Note: On n'applique pas les résultats à une table car c'est juste de l'exécution
-        // Si besoin d'appliquer les résultats, il faudrait ajouter une logique de destination
+        // Appliquer les résultats à la table de destination si définie et si il y a des données
+        if (destinationTable && sqlResult.records && sqlResult.records.length > 0) {
+            await applyResultsToTable(sqlResult.records, destinationTable);
+        } else if (destinationTable && (!sqlResult.records || sqlResult.records.length === 0)) {
+            console.log('Aucun résultat à appliquer à la table de destination');
+        }
         
     } catch (error) {
         console.error('Erreur lors de l\'exécution de la requête:', error);
         throw error; // Remonter l'erreur pour arrêter la séquence
     }
+}
+
+/**
+ * Applique les résultats d'une requête à une table de destination (comme dans sql-executor)
+ */
+async function applyResultsToTable(records, destinationTable) {
+    try {
+        console.log(`Application de ${records.length} résultats à la table "${destinationTable}"`);
+        
+        // Préparer les données (même logique que sql-executor.js)
+        const processedRecords = records.map(record => record.fields);
+        const bulkData = convertToBulkColValues(processedRecords);
+        
+        // Générer les IDs séquentiels
+        const IDs = Array.from({length: processedRecords.length}, (x, i) => i + 1);
+        
+        // Appliquer les données à la table
+        await grist.docApi.applyUserActions([
+            ['ReplaceTableData', destinationTable, IDs, bulkData]
+        ]);
+        
+        console.log(`✅ ${processedRecords.length} enregistrements appliqués à la table "${destinationTable}"`);
+        
+    } catch (error) {
+        console.error(`Erreur lors de l'application des résultats à la table "${destinationTable}":`, error);
+        throw error;
+    }
+}
+
+/**
+ * Convertit un tableau d'objets en format BulkColValues pour Grist (copié de sql-executor.js)
+ */
+function convertToBulkColValues(records) {
+    if (records.length === 0) {
+        throw new Error("Aucune donnée à insérer.");
+    }
+
+    // Extraire les noms de colonnes
+    const columns = Object.keys(records[0]);
+
+    // Construire l'objet BulkColValues
+    let bulkColValues = {};
+    columns.forEach(col => {
+        bulkColValues[col] = records.map(row => row[col] ?? null);
+    });
+
+    return bulkColValues;
 }
 
 /**
