@@ -151,7 +151,7 @@
         // Variables globales
         let allButtons = []; // Tous les boutons disponibles
         let selectedButton = null; // Bouton actuellement sélectionné
-        let allRecords = []; // Tous les enregistrements Grist
+        // Note: allRecords est déjà déclaré dans data-manager.js
         
         // Couleurs prédéfinies pour les boutons
         const buttonColors = [
@@ -169,15 +169,24 @@
          * Initialise la page de sélection des boutons
          */
         function initializeButtonSelection() {
-            console.log('Initialisation de la page de sélection des boutons');
+            console.log('🚀 === INITIALISATION BUTTON SELECTION PAGE ===');
+            console.log('configureGristSettings disponible:', typeof configureGristSettings === 'function');
+            console.log('ButtonManager disponible:', typeof ButtonManager !== 'undefined');
+            console.log('allRecords initial:', allRecords);
+            console.log('buttonConfigField initial:', buttonConfigField);
             
             // Configurer Grist
             if (typeof configureGristSettings === 'function') {
+                console.log('📡 Configuration de Grist...');
                 configureGristSettings();
+            } else {
+                console.error('❌ configureGristSettings non disponible');
             }
             
             // Configurer les event listeners
             setupEventListeners();
+            
+            console.log('🚀 === FIN INITIALISATION ===');
         }
         
         /**
@@ -200,37 +209,70 @@
          * Charge et affiche tous les boutons disponibles
          */
         function loadAvailableButtons() {
-            console.log('Chargement des boutons disponibles...');
+            console.log('🔍 === DEBUG CHARGEMENT BOUTONS ===');
+            console.log('allRecords:', allRecords);
+            console.log('allRecords.length:', allRecords ? allRecords.length : 'undefined');
+            console.log('buttonConfigField:', buttonConfigField);
+            console.log('ButtonManager disponible:', typeof ButtonManager !== 'undefined');
             
             if (!allRecords || allRecords.length === 0) {
+                console.log('❌ Aucun enregistrement disponible');
                 showNoButtons();
                 return;
             }
             
             // Collecter tous les boutons uniques de tous les enregistrements
             const uniqueButtons = new Map(); // name -> button object
+            let totalButtonsFound = 0;
             
-            allRecords.forEach(record => {
-                if (!buttonConfigField || !record[buttonConfigField]) return;
+            allRecords.forEach((record, recordIndex) => {
+                console.log(`📋 Traitement enregistrement ${recordIndex + 1}/${allRecords.length} (ID: ${record.id})`);
+                console.log('  buttonConfigField:', buttonConfigField);
+                console.log('  record[buttonConfigField]:', record[buttonConfigField]);
+                
+                if (!buttonConfigField) {
+                    console.log('  ⚠️ buttonConfigField non défini');
+                    return;
+                }
+                
+                if (!record[buttonConfigField]) {
+                    console.log('  ⚠️ Pas de données buttonconfig dans cet enregistrement');
+                    return;
+                }
                 
                 try {
+                    console.log('  🔄 Lecture des boutons avec ButtonManager...');
                     const buttons = ButtonManager.readButtonConfig(record);
-                    buttons.forEach(button => {
+                    console.log('  📦 Boutons trouvés:', buttons);
+                    
+                    buttons.forEach((button, buttonIndex) => {
+                        console.log(`    🔘 Bouton ${buttonIndex + 1}: "${button.name}" avec ${button.sequence ? button.sequence.length : 0} requêtes`);
+                        
                         if (button.name && !uniqueButtons.has(button.name)) {
                             uniqueButtons.set(button.name, button);
+                            totalButtonsFound++;
+                            console.log(`    ✅ Bouton unique ajouté: "${button.name}"`);
+                        } else if (button.name) {
+                            console.log(`    ⚠️ Bouton déjà existant ignoré: "${button.name}"`);
+                        } else {
+                            console.log(`    ❌ Bouton sans nom ignoré:`, button);
                         }
                     });
                 } catch (error) {
-                    console.warn('Erreur lecture boutons pour enregistrement', record.id, ':', error);
+                    console.error(`  ❌ Erreur lecture boutons pour enregistrement ${record.id}:`, error);
                 }
             });
             
             allButtons = Array.from(uniqueButtons.values());
-            console.log(`${allButtons.length} boutons uniques trouvés:`, allButtons.map(b => b.name));
+            console.log(`🎯 RÉSULTAT FINAL: ${allButtons.length} boutons uniques trouvés`);
+            console.log('📝 Liste des boutons:', allButtons.map(b => b.name));
+            console.log('🔍 === FIN DEBUG CHARGEMENT ===');
             
             if (allButtons.length === 0) {
+                console.log('📭 Aucun bouton trouvé → Affichage message "pas de boutons"');
                 showNoButtons();
             } else {
+                console.log('🎨 Affichage des boutons');
                 displayButtons();
             }
         }
@@ -358,8 +400,14 @@
          * Override de onRecords pour recevoir tous les enregistrements
          */
         function onRecords(records, mappings) {
+            console.log('🔄 === DEBUG onRecords APPELÉ ===');
+            console.log('Records reçus:', records);
+            console.log('Mappings reçus:', mappings);
+            console.log('Ancien allRecords:', allRecords);
+            
             allRecords = records || [];
-            console.log(`${allRecords.length} enregistrements reçus pour la sélection de boutons`);
+            console.log(`📊 ${allRecords.length} enregistrements reçus pour la sélection de boutons`);
+            console.log('🔄 === FIN DEBUG onRecords ===');
             
             // Charger les boutons disponibles
             loadAvailableButtons();
