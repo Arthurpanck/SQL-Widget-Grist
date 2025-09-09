@@ -9,6 +9,7 @@
     <script src="../shared/core/grist-connector.js"></script>
     <script src="../shared/core/button-manager.js"></script>
     <script src="../shared/ui/page-navigation.js"></script>
+    <script src="../shared/ui/navigation.js"></script>
     <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
@@ -99,8 +100,12 @@
         }
     </script>
 </head>
-<body class="bg-white flex items-center justify-center min-h-screen">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl">
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <div id="navigation-container"></div>
+    
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl">
         <h1 class="text-2xl font-bold text-gray-800 mb-2">Sélectionnez le bouton à afficher</h1>
         <p class="text-gray-500 mb-8">Choisissez le bouton qui sera visible par l'utilisateur. Un seul choix est possible.</p>
         
@@ -142,6 +147,7 @@
             </button>
         </div>
     </div>
+</div>
 
     <script>
         // ================================================================================
@@ -174,6 +180,11 @@
             console.log('ButtonManager disponible:', typeof ButtonManager !== 'undefined');
             console.log('allRecords initial:', allRecords);
             console.log('buttonConfigField initial:', buttonConfigField);
+            
+            // Initialiser la navigation
+            if (typeof addNavigationToContainer === 'function') {
+                addNavigationToContainer('button-selection-page', 'navigation-container');
+            }
             
             // Configurer Grist
             if (typeof configureGristSettings === 'function') {

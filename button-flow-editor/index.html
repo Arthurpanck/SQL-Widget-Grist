@@ -11,6 +11,7 @@
     <script src="../shared/core/button-manager.js"></script>
     <script src="../shared/ui/ui-helpers.js"></script>
     <script src="../shared/ui/page-navigation.js"></script>
+    <script src="../shared/ui/navigation.js"></script>
     <script src="button-flow-editor.js"></script>
     <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -45,8 +46,12 @@
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-4 md:p-8 relative">
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <div id="navigation-container"></div>
+    
+    <div class="p-4 md:p-8">
+        <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-4 md:p-8 relative">
         <div class="absolute top-4 right-4 md:top-8 md:right-8 flex items-center space-x-2">
             <span id="toggle-label" class="text-sm font-medium text-gray-700">Créateur de requête</span>
             <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
@@ -95,5 +100,6 @@
             </div>
         </div>
     </div>
+</div>
 </body>
 </html>

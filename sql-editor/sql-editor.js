@@ -58,6 +58,11 @@ function save(record) {
 ready(() => {
     console.log("Initialisation du widget SQL Editor & Executor Enhanced avec sélection dynamique");
     
+    // Initialiser la navigation
+    if (typeof addNavigationToContainer === 'function') {
+        addNavigationToContainer('sql-editor', 'navigation-container');
+    }
+    
     // Initialiser l'éditeur Ace
     loadAceEditor();
     

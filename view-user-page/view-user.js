@@ -11,6 +11,11 @@ let isExecuting = false;
 function initializeUserPage() {
     console.log('Initialisation de la page utilisateur');
     
+    // Initialiser la navigation
+    if (typeof addNavigationToContainer === 'function') {
+        addNavigationToContainer('view-user-page', 'navigation-container');
+    }
+    
     // Charger le bouton depuis localStorage
     loadSelectedButton();
     
