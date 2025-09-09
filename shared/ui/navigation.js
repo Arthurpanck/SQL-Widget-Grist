@@ -12,19 +12,14 @@ const NAVIGATION_PAGES = {
         description: 'Créer et tester des requêtes SQL'
     },
     'button-flow-editor': {
-        name: 'Créateur de bouton',
+        name: 'Créateur de bouton', 
         path: '../button-flow-editor/index.html',
         description: 'Assembler des boutons avec séquences de requêtes'
     },
     'button-selection-page': {
-        name: 'Bibliothèque',
+        name: 'Liste bouton',
         path: '../button-selection-page/index.html',
         description: 'Sélectionner un bouton à exécuter'
-    },
-    'view-user-page': {
-        name: 'Interface utilisateur',
-        path: '../view-user-page/index.html',
-        description: 'Vue finale pour l\'utilisateur'
     }
 };
 
@@ -101,8 +96,6 @@ function initializeNavigation() {
         currentPage = 'button-flow-editor';
     } else if (currentPath.includes('button-selection-page')) {
         currentPage = 'button-selection-page';
-    } else if (currentPath.includes('view-user-page')) {
-        currentPage = 'view-user-page';
     }
 
     // Créer la navigation
@@ -130,20 +123,25 @@ function createCompactNavigation(currentPage) {
         currentPage = 'sql-editor'; // fallback
     }
     
-    const otherPages = Object.entries(NAVIGATION_PAGES).filter(([pageId]) => pageId !== currentPage);
+    // Créer tous les boutons dans l'ordre, avec le bouton actuel différencié
+    const allPages = ['sql-editor', 'button-flow-editor', 'button-selection-page'];
     
     const navHTML = `
-        <div class="flex items-center space-x-2">
-            <span class="text-sm font-medium text-teal-600 bg-teal-50 px-2 py-1 rounded">${NAVIGATION_PAGES[currentPage].name}</span>
-            <div class="flex space-x-1">
-                ${otherPages.map(([pageId, pageInfo]) => `
-                    <button onclick="navigateToPage('${pageId}')" 
-                            class="px-2 py-1 text-xs bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded transition-colors"
-                            title="${pageInfo.description}">
-                        ${pageInfo.name}
-                    </button>
-                `).join('')}
-            </div>
+        <div class="flex items-center space-x-1">
+            ${allPages.map(pageId => {
+                const pageInfo = NAVIGATION_PAGES[pageId];
+                const isActive = pageId === currentPage;
+                
+                if (isActive) {
+                    return `<span class="px-3 py-1 text-sm font-medium text-teal-600 bg-teal-50 rounded border border-teal-200 min-w-[120px] text-center">${pageInfo.name}</span>`;
+                } else {
+                    return `<button onclick="navigateToPage('${pageId}')" 
+                                    class="px-3 py-1 text-sm font-medium bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded border border-gray-200 hover:border-teal-200 transition-all min-w-[120px]"
+                                    title="${pageInfo.description}">
+                                ${pageInfo.name}
+                            </button>`;
+                }
+            }).join('')}
         </div>
     `;
     

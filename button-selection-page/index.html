@@ -101,12 +101,12 @@
     </script>
 </head>
 <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl relative">
-        <!-- Navigation compacte en haut à droite -->
-        <div class="absolute top-4 right-4" id="compact-navigation">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-5xl">
+        <!-- Navigation compacte -->
+        <div class="flex justify-end mb-6" id="compact-navigation">
         </div>
         
-        <h1 class="text-2xl font-bold text-gray-800 mb-2 mr-24">Sélectionnez le bouton à afficher</h1>
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Sélectionnez le bouton à afficher</h1>
         <p class="text-gray-500 mb-8">Choisissez le bouton qui sera visible par l'utilisateur. Un seul choix est possible.</p>
         
         <!-- Message de chargement -->
@@ -193,12 +193,10 @@
                     const container = document.getElementById('compact-navigation');
                     if (container) {
                         container.innerHTML = `
-                            <div class="flex items-center space-x-2">
-                                <span class="text-sm font-medium text-teal-600 bg-teal-50 px-2 py-1 rounded">Bibliothèque</span>
-                                <div class="flex space-x-1">
-                                    <button onclick="window.location.href='../sql-editor/index.html'" class="px-2 py-1 text-xs bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded transition-colors">Créateur de requête</button>
-                                    <button onclick="window.location.href='../button-flow-editor/index.html'" class="px-2 py-1 text-xs bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded transition-colors">Créateur de bouton</button>
-                                </div>
+                            <div class="flex items-center space-x-1">
+                                <button onclick="window.location.href='../sql-editor/index.html'" class="px-3 py-1 text-sm font-medium bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded border border-gray-200 hover:border-teal-200 transition-all min-w-[120px]">Créateur de requête</button>
+                                <button onclick="window.location.href='../button-flow-editor/index.html'" class="px-3 py-1 text-sm font-medium bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded border border-gray-200 hover:border-teal-200 transition-all min-w-[120px]">Créateur de bouton</button>
+                                <span class="px-3 py-1 text-sm font-medium text-teal-600 bg-teal-50 rounded border border-teal-200 min-w-[120px] text-center">Liste bouton</span>
                             </div>
                         `;
                         console.log('Navigation fallback injectée dans button-selection-page');

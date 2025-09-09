@@ -70,12 +70,10 @@ ready(() => {
             const container = document.getElementById('compact-navigation');
             if (container) {
                 container.innerHTML = `
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm font-medium text-teal-600 bg-teal-50 px-2 py-1 rounded">Créateur de requête</span>
-                        <div class="flex space-x-1">
-                            <button onclick="window.location.href='../button-flow-editor/index.html'" class="px-2 py-1 text-xs bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded transition-colors">Créateur de bouton</button>
-                            <button onclick="window.location.href='../button-selection-page/index.html'" class="px-2 py-1 text-xs bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded transition-colors">Bibliothèque</button>
-                        </div>
+                    <div class="flex items-center space-x-1">
+                        <span class="px-3 py-1 text-sm font-medium text-teal-600 bg-teal-50 rounded border border-teal-200 min-w-[120px] text-center">Créateur de requête</span>
+                        <button onclick="window.location.href='../button-flow-editor/index.html'" class="px-3 py-1 text-sm font-medium bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded border border-gray-200 hover:border-teal-200 transition-all min-w-[120px]">Créateur de bouton</button>
+                        <button onclick="window.location.href='../button-selection-page/index.html'" class="px-3 py-1 text-sm font-medium bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded border border-gray-200 hover:border-teal-200 transition-all min-w-[120px]">Liste bouton</button>
                     </div>
                 `;
                 console.log('Navigation fallback injectée');
