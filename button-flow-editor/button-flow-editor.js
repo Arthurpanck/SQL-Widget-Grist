@@ -409,9 +409,9 @@ let pageNavigation = null;
 function initializeButtonFlowEditor() {
     console.log('Initialisation du Button Flow Editor');
     
-    // Initialiser la navigation
-    if (typeof addNavigationToContainer === 'function') {
-        addNavigationToContainer('button-flow-editor', 'navigation-container');
+    // Initialiser la navigation compacte
+    if (typeof addCompactNavigationToContainer === 'function') {
+        addCompactNavigationToContainer('button-flow-editor', 'compact-navigation');
     }
     
     // Initialiser la connection Grist

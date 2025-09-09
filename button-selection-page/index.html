@@ -100,13 +100,13 @@
         }
     </script>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- Navigation -->
-    <div id="navigation-container"></div>
-    
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl">
-        <h1 class="text-2xl font-bold text-gray-800 mb-2">Sélectionnez le bouton à afficher</h1>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl relative">
+        <!-- Navigation compacte en haut à droite -->
+        <div class="absolute top-4 right-4" id="compact-navigation">
+        </div>
+        
+        <h1 class="text-2xl font-bold text-gray-800 mb-2 mr-24">Sélectionnez le bouton à afficher</h1>
         <p class="text-gray-500 mb-8">Choisissez le bouton qui sera visible par l'utilisateur. Un seul choix est possible.</p>
         
         <!-- Message de chargement -->
@@ -181,9 +181,9 @@
             console.log('allRecords initial:', allRecords);
             console.log('buttonConfigField initial:', buttonConfigField);
             
-            // Initialiser la navigation
-            if (typeof addNavigationToContainer === 'function') {
-                addNavigationToContainer('button-selection-page', 'navigation-container');
+            // Initialiser la navigation compacte
+            if (typeof addCompactNavigationToContainer === 'function') {
+                addCompactNavigationToContainer('button-selection-page', 'compact-navigation');
             }
             
             // Configurer Grist

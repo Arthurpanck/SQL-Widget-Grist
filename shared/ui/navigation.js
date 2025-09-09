@@ -118,8 +118,51 @@ function addNavigationToContainer(currentPage, containerId) {
     createNavigation(currentPage, containerId);
 }
 
+/**
+ * Crée une navigation compacte pour intégration dans l'interface (haut à droite)
+ * @param {string} currentPage - Page actuelle
+ * @returns {string} - HTML de la navigation compacte
+ */
+function createCompactNavigation(currentPage) {
+    const otherPages = Object.entries(NAVIGATION_PAGES).filter(([pageId]) => pageId !== currentPage);
+    
+    const navHTML = `
+        <div class="flex items-center space-x-2">
+            <span class="text-sm font-medium text-gray-700">${NAVIGATION_PAGES[currentPage].name}</span>
+            <div class="flex space-x-1">
+                ${otherPages.map(([pageId, pageInfo]) => `
+                    <button onclick="navigateToPage('${pageId}')" 
+                            class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded transition-colors"
+                            title="${pageInfo.description}">
+                        ${pageInfo.name}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    return navHTML;
+}
+
+/**
+ * Ajoute la navigation compacte dans un container
+ * @param {string} currentPage - Page actuelle  
+ * @param {string} containerId - ID du container
+ */
+function addCompactNavigationToContainer(currentPage, containerId) {
+    const container = document.getElementById(containerId);
+    if (container) {
+        container.innerHTML = createCompactNavigation(currentPage);
+        console.log(`Navigation compacte créée pour: ${currentPage}`);
+    } else {
+        console.warn(`Container ${containerId} non trouvé pour la navigation compacte`);
+    }
+}
+
 // Export des fonctions pour usage global
 window.createNavigation = createNavigation;
 window.navigateToPage = navigateToPage;
 window.initializeNavigation = initializeNavigation;
 window.addNavigationToContainer = addNavigationToContainer;
+window.createCompactNavigation = createCompactNavigation;
+window.addCompactNavigationToContainer = addCompactNavigationToContainer;
