@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <title>Test Workflow Complet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body class="p-8 bg-gray-100">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Test du Workflow Complet</h1>
+        
+        <div class="space-y-6">
+            <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-500">
+                <h2 class="font-semibold text-blue-800 mb-4">Étapes du Workflow</h2>
+                <ol class="list-decimal list-inside space-y-2 text-sm">
+                    <li>Créer des boutons dans <strong>button-flow-editor</strong></li>
+                    <li>Aller sur <strong>button-selection-page</strong> pour sélectionner un bouton</li>
+                    <li>Cliquer "Sauvegarder" pour aller sur <strong>view-user-page</strong></li>
+                    <li>Exécuter le bouton sélectionné</li>
+                </ol>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded border-l-4 border-green-500">
+                <h2 class="font-semibold text-green-800 mb-4">Navigation Rapide</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <a href="button-flow-editor/index.html" class="bg-teal-600 text-white text-center py-3 px-4 rounded-lg hover:bg-teal-700 transition-colors">
+                        <div class="material-icons mb-1">build_circle</div>
+                        <div class="text-sm">Créateur Boutons</div>
+                    </a>
+                    
+                    <a href="button-selection-page/index.html" class="bg-blue-600 text-white text-center py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                        <div class="material-icons mb-1">radio_button_checked</div>
+                        <div class="text-sm">Sélection</div>
+                    </a>
+                    
+                    <a href="view-user-page/index.html" class="bg-purple-600 text-white text-center py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+                        <div class="material-icons mb-1">play_circle</div>
+                        <div class="text-sm">Vue Utilisateur</div>
+                    </a>
+                    
+                    <a href="sql-editor/index.html" class="bg-gray-600 text-white text-center py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors">
+                        <div class="material-icons mb-1">edit_note</div>
+                        <div class="text-sm">Éditeur SQL</div>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="bg-yellow-50 p-4 rounded border-l-4 border-yellow-500">
+                <h2 class="font-semibold text-yellow-800 mb-4">Fonctionnalités Implémentées</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <h3 class="font-semibold mb-2">Button Flow Editor ✅</h3>
+                        <ul class="space-y-1">
+                            <li>• Drag & drop des requêtes</li>
+                            <li>• Sauvegarde dans tous les enregistrements</li>
+                            <li>• Format JSON avec IDs de lignes</li>
+                            <li>• Navigation vers SQL Editor</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold mb-2">Button Selection Page ✅</h3>
+                        <ul class="space-y-1">
+                            <li>• Chargement dynamique des boutons</li>
+                            <li>• Interface de sélection animée</li>
+                            <li>• Vrais noms des boutons</li>
+                            <li>• Navigation vers View User Page</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold mb-2">View User Page ✅</h3>
+                        <ul class="space-y-1">
+                            <li>• Affichage du bouton sélectionné</li>
+                            <li>• Interface d'exécution</li>
+                            <li>• Progression étape par étape</li>
+                            <li>• Gestion d'erreurs et résultats</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold mb-2">Infrastructure ✅</h3>
+                        <ul class="space-y-1">
+                            <li>• ButtonManager pour la gestion JSON</li>
+                            <li>• Navigation entre pages</li>
+                            <li>• Persistence via localStorage</li>
+                            <li>• Intégration Grist complète</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded border-l-4 border-gray-400">
+                <h2 class="font-semibold text-gray-800 mb-4">Notes Techniques</h2>
+                <ul class="text-sm space-y-1">
+                    <li><strong>Format JSON :</strong> <code>[{"name": "Button Name", "sequence": [1, 2, 3]}]</code></li>
+                    <li><strong>Navigation :</strong> localStorage pour transférer les données entre pages</li>
+                    <li><strong>Couleurs :</strong> Palette cohérente avec rotation automatique</li>
+                    <li><strong>Responsive :</strong> Interface adaptée mobile et desktop</li>
+                    <li><strong>Gestion d'erreurs :</strong> Validation et feedback utilisateur</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
