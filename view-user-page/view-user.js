@@ -185,10 +185,13 @@ async function executeSingleQuery(record, sqlQuery) {
         }
         
         // Vérifier si une table de destination est définie
-        const destinationTable = record[destinationTableField];
-        if (!destinationTable) {
+        const encodedDestinationTable = record[destinationTableField];
+        if (!encodedDestinationTable) {
             console.warn('Aucune table de destination définie pour cette requête, exécution sans application des résultats');
         }
+        
+        // Décoder l'ID de table vers le nom actuel (même si elle a changé de nom)
+        const destinationTable = encodedDestinationTable ? decodeTableIdToName(encodedDestinationTable) : null;
         
         // Convertir les labels en IDs pour l'exécution (comme dans sql-executor)
         const sqlQueryWithIds = convertSqlLabelsToIds(sqlQuery);
@@ -197,7 +200,8 @@ async function executeSingleQuery(record, sqlQuery) {
         const sqlQueryForExecution = convertSqlIdsToLabels(sqlQueryWithIds);
         
         console.log('SQL final pour exécution:', sqlQueryForExecution.substring(0, 100) + '...');
-        console.log('Table de destination:', destinationTable || 'Aucune');
+        console.log('Table de destination encodée:', encodedDestinationTable || 'Aucune');
+        console.log('Table de destination résolue:', destinationTable || 'Aucune');
         
         // Obtenir le token d'accès
         const tokenInfo = await grist.docApi.getAccessToken({ readOnly: false });

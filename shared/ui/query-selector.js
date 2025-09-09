@@ -87,8 +87,10 @@ function loadQueryIntoEditor(record) {
     
     // Charger la table de destination par défaut si définie
     if (destinationTableField && record[destinationTableField]) {
-        const defaultDestinationTable = record[destinationTableField];
-        console.log("Table de destination par défaut trouvée:", defaultDestinationTable);
+        const encodedDestinationTable = record[destinationTableField];
+        // Décoder l'ID de table vers le nom actuel
+        const defaultDestinationTable = decodeTableIdToName(encodedDestinationTable);
+        console.log("Table de destination par défaut trouvée:", encodedDestinationTable, "→", defaultDestinationTable);
         setDefaultDestinationTable(defaultDestinationTable);
     }
     

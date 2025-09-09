@@ -26,8 +26,10 @@ function save(record) {
         const targetTableSelect = document.getElementById('targetTable');
         if (targetTableSelect && targetTableSelect.value && destinationTableField) {
             const selectedDestinationTable = targetTableSelect.value;
-            fieldsToUpdate[destinationTableField] = selectedDestinationTable;
-            console.log("Sauvegarde de la table de destination:", selectedDestinationTable);
+            // Encoder le nom de table avec son ID pour résister aux changements de noms
+            const encodedDestinationTable = encodeTableNameToId(selectedDestinationTable);
+            fieldsToUpdate[destinationTableField] = encodedDestinationTable;
+            console.log("Sauvegarde de la table de destination:", selectedDestinationTable, "→", encodedDestinationTable);
         }
         
         grist.selectedTable.update({

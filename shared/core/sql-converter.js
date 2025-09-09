@@ -97,3 +97,50 @@ function convertSqlIdsToLabels(sqlQuery) {
 function escapeRegex(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+/**
+ * Convertit un nom de table vers son format encodé avec ID
+ * @param {string} tableName - Nom de la table
+ * @returns {string} - Format encodé [TABLE:id] ou nom original si pas trouvé
+ */
+function encodeTableNameToId(tableName) {
+    if (!tableName || typeof tableName !== 'string') {
+        return tableName;
+    }
+    
+    const tableId = tableNameToId[tableName];
+    if (tableId !== undefined) {
+        console.log(`Encodage table: "${tableName}" → [TABLE:${tableId}]`);
+        return `[TABLE:${tableId}]`;
+    }
+    
+    console.warn(`Table "${tableName}" non trouvée dans les mappings, conservation du nom original`);
+    return tableName;
+}
+
+/**
+ * Décode un format [TABLE:id] vers le nom actuel de la table
+ * @param {string} encodedTable - Format encodé [TABLE:id] ou nom de table
+ * @returns {string} - Nom actuel de la table ou chaîne originale si pas trouvé
+ */
+function decodeTableIdToName(encodedTable) {
+    if (!encodedTable || typeof encodedTable !== 'string') {
+        return encodedTable;
+    }
+    
+    // Vérifier si c'est un format encodé
+    const match = encodedTable.match(/^\[TABLE:(\d+)\]$/);
+    if (match) {
+        const tableId = parseInt(match[1]);
+        const tableName = tableIdToName[tableId];
+        if (tableName) {
+            console.log(`Décodage table: [TABLE:${tableId}] → "${tableName}"`);
+            return tableName;
+        }
+        console.warn(`ID de table ${tableId} non trouvé dans les mappings`);
+        return encodedTable; // Retourner l'original si pas trouvé
+    }
+    
+    // Si ce n'est pas encodé, retourner tel quel
+    return encodedTable;
+}
