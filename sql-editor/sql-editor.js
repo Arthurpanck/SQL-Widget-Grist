@@ -59,8 +59,28 @@ ready(() => {
     console.log("Initialisation du widget SQL Editor & Executor Enhanced avec sélection dynamique");
     
     // Initialiser la navigation compacte
+    console.log('Initialisation navigation - fonction disponible:', typeof addCompactNavigationToContainer);
+    
     if (typeof addCompactNavigationToContainer === 'function') {
         addCompactNavigationToContainer('sql-editor', 'compact-navigation');
+    } else {
+        console.error('addCompactNavigationToContainer non disponible');
+        // Fallback temporaire pour debug
+        setTimeout(() => {
+            const container = document.getElementById('compact-navigation');
+            if (container) {
+                container.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-medium text-teal-600 bg-teal-50 px-2 py-1 rounded">Créateur de requête</span>
+                        <div class="flex space-x-1">
+                            <button onclick="window.location.href='../button-flow-editor/index.html'" class="px-2 py-1 text-xs bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded transition-colors">Créateur de bouton</button>
+                            <button onclick="window.location.href='../button-selection-page/index.html'" class="px-2 py-1 text-xs bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded transition-colors">Bibliothèque</button>
+                        </div>
+                    </div>
+                `;
+                console.log('Navigation fallback injectée');
+            }
+        }, 100);
     }
     
     // Initialiser l'éditeur Ace

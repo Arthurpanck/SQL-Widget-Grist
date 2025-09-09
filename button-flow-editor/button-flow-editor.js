@@ -410,8 +410,28 @@ function initializeButtonFlowEditor() {
     console.log('Initialisation du Button Flow Editor');
     
     // Initialiser la navigation compacte
+    console.log('Button Flow Editor - Navigation fonction disponible:', typeof addCompactNavigationToContainer);
+    
     if (typeof addCompactNavigationToContainer === 'function') {
         addCompactNavigationToContainer('button-flow-editor', 'compact-navigation');
+    } else {
+        console.error('addCompactNavigationToContainer non disponible dans button-flow-editor');
+        // Fallback temporaire
+        setTimeout(() => {
+            const container = document.getElementById('compact-navigation');
+            if (container) {
+                container.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-medium text-teal-600 bg-teal-50 px-2 py-1 rounded">Créateur de bouton</span>
+                        <div class="flex space-x-1">
+                            <button onclick="window.location.href='../sql-editor/index.html'" class="px-2 py-1 text-xs bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded transition-colors">Créateur de requête</button>
+                            <button onclick="window.location.href='../button-selection-page/index.html'" class="px-2 py-1 text-xs bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded transition-colors">Bibliothèque</button>
+                        </div>
+                    </div>
+                `;
+                console.log('Navigation fallback injectée dans button-flow-editor');
+            }
+        }, 100);
     }
     
     // Initialiser la connection Grist

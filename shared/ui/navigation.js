@@ -124,15 +124,21 @@ function addNavigationToContainer(currentPage, containerId) {
  * @returns {string} - HTML de la navigation compacte
  */
 function createCompactNavigation(currentPage) {
+    // Vérifier que la page existe
+    if (!NAVIGATION_PAGES[currentPage]) {
+        console.warn('Page inconnue:', currentPage);
+        currentPage = 'sql-editor'; // fallback
+    }
+    
     const otherPages = Object.entries(NAVIGATION_PAGES).filter(([pageId]) => pageId !== currentPage);
     
     const navHTML = `
         <div class="flex items-center space-x-2">
-            <span class="text-sm font-medium text-gray-700">${NAVIGATION_PAGES[currentPage].name}</span>
+            <span class="text-sm font-medium text-teal-600 bg-teal-50 px-2 py-1 rounded">${NAVIGATION_PAGES[currentPage].name}</span>
             <div class="flex space-x-1">
                 ${otherPages.map(([pageId, pageInfo]) => `
                     <button onclick="navigateToPage('${pageId}')" 
-                            class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded transition-colors"
+                            class="px-2 py-1 text-xs bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 rounded transition-colors"
                             title="${pageInfo.description}">
                         ${pageInfo.name}
                     </button>
@@ -150,12 +156,23 @@ function createCompactNavigation(currentPage) {
  * @param {string} containerId - ID du container
  */
 function addCompactNavigationToContainer(currentPage, containerId) {
+    console.log(`Tentative création navigation compacte - Page: ${currentPage}, Container: ${containerId}`);
+    
     const container = document.getElementById(containerId);
     if (container) {
-        container.innerHTML = createCompactNavigation(currentPage);
-        console.log(`Navigation compacte créée pour: ${currentPage}`);
+        const navHTML = createCompactNavigation(currentPage);
+        container.innerHTML = navHTML;
+        console.log(`✅ Navigation compacte créée pour: ${currentPage}`);
+        console.log(`HTML inséré:`, navHTML);
     } else {
-        console.warn(`Container ${containerId} non trouvé pour la navigation compacte`);
+        console.error(`❌ Container ${containerId} non trouvé pour la navigation compacte`);
+        // Fallback - injecter dans le body en position absolue pour debug
+        document.body.insertAdjacentHTML('afterbegin', `
+            <div style="position: fixed; top: 10px; right: 10px; z-index: 9999; background: yellow; padding: 5px; border: 2px solid red;">
+                DEBUG: Container "${containerId}" introuvable<br>
+                ${createCompactNavigation(currentPage)}
+            </div>
+        `);
     }
 }
 
