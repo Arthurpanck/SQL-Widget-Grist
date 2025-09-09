@@ -98,6 +98,11 @@ function configureGristSettings() {
     
     grist.ready({
         requiredAccess: 'full',
+        onEditOptions: function() {
+            // Rediriger vers sql-editor quand on clique sur "Ouvrir la configuration"
+            console.log("Configuration demandée - redirection vers sql-editor");
+            window.location.href = '../sql-editor/index.html';
+        },
         columns: [
             {
                 name: "sqlField",
