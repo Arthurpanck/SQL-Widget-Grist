@@ -268,7 +268,8 @@ async function handleCreateButton() {
         // Créer l'objet bouton avec format JSON requis
         const newButton = {
             name: buttonName,
-            sequence: querySequence
+            sequence: querySequence,
+            rgba: generateButtonColorFromName(buttonName)
         };
         
         // Valider le bouton avant sauvegarde
@@ -339,6 +340,29 @@ async function handleCreateButton() {
         console.error('Erreur lors de la création du bouton:', error);
         alert('Erreur lors de la création du bouton: ' + error.message);
     }
+}
+
+/**
+ * Génère une couleur rgba basée sur le nom du bouton (même logique que button-selection-page)
+ * @param {string} buttonName - Nom du bouton
+ * @returns {string} - Couleur au format rgba(r, g, b, a)
+ */
+function generateButtonColorFromName(buttonName) {
+    // Même palette que button-selection-page mais en format rgba
+    const buttonColorsRgba = [
+        'rgba(168, 230, 207, 1)', // soft-green
+        'rgba(255, 179, 102, 1)', // soft-orange
+        'rgba(248, 187, 217, 1)', // soft-pink
+        'rgba(168, 216, 234, 1)', // soft-blue
+        'rgba(209, 196, 233, 1)', // soft-purple
+        'rgba(255, 243, 160, 1)', // soft-yellow
+        'rgba(178, 223, 219, 1)', // soft-teal
+        'rgba(255, 205, 210, 1)'  // soft-coral
+    ];
+    
+    // Même algorithme de sélection que dans button-selection-page
+    const colorIndex = Math.abs(buttonName.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % buttonColorsRgba.length;
+    return buttonColorsRgba[colorIndex];
 }
 
 /**
