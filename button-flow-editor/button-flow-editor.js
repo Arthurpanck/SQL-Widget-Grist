@@ -322,7 +322,15 @@ async function handleCreateButton() {
             document.getElementById('button-name').value = '';
             dropzone.innerHTML = initialPlaceholder;
             
+            // Sauvegarder le bouton pour la vue utilisateur et rediriger
+            localStorage.setItem('selectedButton', JSON.stringify(newButton));
+            
             console.log(`Bouton sauvegardé avec succès dans ${successCount}/${allRecords.length} enregistrements`);
+            
+            // Rediriger vers la vue utilisateur
+            setTimeout(() => {
+                window.location.href = '../user-view-button/index.html';
+            }, 1000);
         } else {
             let message = `Erreur: Impossible de sauvegarder le bouton "${buttonName}"\n\n`;
             message += `Échecs dans tous les ${errorCount} enregistrements`;

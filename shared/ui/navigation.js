@@ -20,6 +20,11 @@ const NAVIGATION_PAGES = {
         name: 'Liste bouton',
         path: '../button-selection-page/index.html',
         description: 'Sélectionner un bouton à exécuter'
+    },
+    'user-view-button': {
+        name: 'Vue utilisateur',
+        path: '../user-view-button/index.html',
+        description: 'Exécuter un bouton sélectionné'
     }
 };
 

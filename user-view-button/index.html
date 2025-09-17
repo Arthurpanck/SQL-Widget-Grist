@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Vue Utilisateur - Bouton</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../shared/core/grist-connector.js"></script>
+    <script src="../shared/core/data-manager.js"></script>
+    <script src="../shared/core/sql-converter.js"></script>
+    <script src="../shared/core/button-manager.js"></script>
+    <script src="../shared/ui/ui-helpers.js"></script>
+    <script src="../shared/ui/page-navigation.js"></script>
+    <script src="../shared/ui/navigation.js"></script>
+    <script src="user-view-button.js"></script>
+    <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .button-card {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.3);
+            transition: all 0.3s ease;
+        }
+        .button-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 25px 50px rgba(79, 70, 229, 0.4);
+        }
+        @media (max-width: 768px) {
+            .button-container {
+                padding: 1rem;
+            }
+            .button-card {
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Navigation compacte -->
+        <div class="glass-card rounded-lg p-4 mb-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-xl md:text-2xl font-bold text-gray-800">Vue Utilisateur</h1>
+                <div id="compact-navigation"></div>
+            </div>
+        </div>
+        
+        <!-- État par défaut - Aucun bouton sélectionné -->
+        <div id="no-button-state" class="glass-card rounded-xl p-8 md:p-12 text-center">
+            <div class="max-w-md mx-auto">
+                <div class="mb-6">
+                    <span class="material-icons text-6xl text-gray-300 mb-4 block">touch_app</span>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Aucun bouton sélectionné</h2>
+                <p class="text-gray-500 mb-8">Pour commencer, vous devez créer et sélectionner un bouton dans le créateur de boutons.</p>
+                <div class="space-y-4">
+                    <button onclick="window.location.href='../button-flow-editor/index.html'" 
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
+                        <span class="material-icons mr-2 align-middle">build_circle</span>
+                        Créer un bouton
+                    </button>
+                    <button onclick="window.location.href='../button-selection-page/index.html'" 
+                            class="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
+                        <span class="material-icons mr-2 align-middle">radio_button_checked</span>
+                        Sélectionner un bouton existant
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Affichage du bouton sélectionné -->
+        <div id="button-display" class="hidden">
+            <div class="glass-card rounded-xl p-6 md:p-8 mb-6">
+                <div class="text-center">
+                    <h2 class="text-xl md:text-2xl font-semibold text-gray-700 mb-2">Bouton sélectionné</h2>
+                    <p class="text-gray-500">Cliquez pour exécuter la séquence de requêtes</p>
+                </div>
+            </div>
+            
+            <div class="button-container text-center">
+                <div class="button-card rounded-2xl text-white p-8 md:p-12 cursor-pointer select-none inline-block min-w-[280px] max-w-lg mx-auto"
+                     id="user-button" onclick="executeButton()">
+                    <div class="flex flex-col items-center space-y-4">
+                        <span class="material-icons text-4xl md:text-5xl opacity-90">play_circle_filled</span>
+                        <h3 id="button-name" class="text-2xl md:text-3xl font-bold tracking-wide"></h3>
+                        <p id="button-description" class="text-sm md:text-base opacity-80 max-w-xs"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Statut d'exécution -->
+            <div id="execution-status" class="hidden mt-8">
+                <div class="glass-card rounded-xl p-6">
+                    <div class="text-center">
+                        <div id="status-icon" class="text-4xl mb-4">⏳</div>
+                        <h3 id="status-title" class="text-lg font-semibold text-gray-700 mb-2">Exécution en cours...</h3>
+                        <p id="status-message" class="text-gray-500">Veuillez patienter pendant l'exécution des requêtes.</p>
+                        
+                        <!-- Barre de progression -->
+                        <div class="mt-6">
+                            <div class="bg-gray-200 rounded-full h-2">
+                                <div id="progress-bar" class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <p id="progress-text" class="text-sm text-gray-500 mt-2">0% terminé</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="mt-8 text-center space-y-4">
+                <button onclick="changeButton()" 
+                        class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200">
+                    <span class="material-icons mr-2 align-middle">swap_horiz</span>
+                    Changer de bouton
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
