@@ -30,32 +30,65 @@ function initializeUserPage() {
 }
 
 /**
- * Charge le bouton sélectionné depuis localStorage
+ * Charge le bouton exposé depuis Grist
  */
 function loadSelectedButton() {
+    // Ne rien faire ici, on attend les données de Grist
+    console.log('Attente des données Grist pour charger le bouton exposé...');
+}
+
+/**
+ * Fonction appelée quand les données Grist arrivent
+ */
+function onRecords(records, mappings) {
+    allRecords = records || [];
+    console.log(`${allRecords.length} enregistrements reçus pour la vue utilisateur`);
+    
+    // Charger le bouton exposé
+    loadExposedButton();
+}
+
+/**
+ * Charge le bouton marqué comme exposé depuis les données Grist
+ */
+function loadExposedButton() {
     try {
-        const buttonData = localStorage.getItem('selectedButton');
-        
-        if (!buttonData) {
-            console.log('Aucun bouton sélectionné, affichage de l\'état par défaut');
+        if (!allRecords || allRecords.length === 0) {
+            console.log('Aucun enregistrement disponible');
             showNoButtonState();
             return;
         }
         
-        selectedButton = JSON.parse(buttonData);
-        console.log('Bouton sélectionné chargé:', selectedButton);
+        let exposedButton = null;
         
-        if (!selectedButton || !selectedButton.name) {
-            console.warn('Données du bouton invalides');
-            showNoButtonState();
-            return;
+        // Chercher le bouton exposé dans tous les enregistrements
+        for (const record of allRecords) {
+            if (!record[buttonConfigField]) continue;
+            
+            try {
+                const buttons = ButtonManager.readButtonConfig(record);
+                const exposed = buttons.find(button => button.exposed === true);
+                
+                if (exposed) {
+                    exposedButton = exposed;
+                    console.log('Bouton exposé trouvé:', exposedButton);
+                    break;
+                }
+            } catch (error) {
+                console.warn('Erreur lecture boutons dans enregistrement', record.id, ':', error);
+            }
         }
         
-        // Afficher le bouton
-        displayButton();
+        if (exposedButton) {
+            selectedButton = exposedButton;
+            displayButton();
+        } else {
+            console.log('Aucun bouton exposé trouvé');
+            showNoButtonState();
+        }
         
     } catch (error) {
-        console.error('Erreur lors du chargement du bouton sélectionné:', error);
+        console.error('Erreur lors du chargement du bouton exposé:', error);
         showNoButtonState();
     }
 }
@@ -96,7 +129,46 @@ function displayButton() {
     }
     document.getElementById('button-description').textContent = description;
     
+    // Appliquer les couleurs du bouton si disponibles
+    applyButtonColors();
+    
     console.log(`Bouton "${selectedButton.name}" affiché avec ${sequenceLength} requêtes`);
+}
+
+/**
+ * Applique les couleurs du bouton selon le format button-selection-page
+ */
+function applyButtonColors() {
+    const userButton = document.getElementById('user-button');
+    if (!userButton || !selectedButton) return;
+    
+    // Palette de couleurs identique à button-selection-page
+    const buttonColors = [
+        { bg: '#a8e6cf', text: '#2e7d32' }, // soft-green
+        { bg: '#ffb366', text: '#5d4037' }, // soft-orange
+        { bg: '#f8bbd9', text: '#6a1b9a' }, // soft-pink
+        { bg: '#a8d8ea', text: '#1565c0' }, // soft-blue
+        { bg: '#d1c4e9', text: '#4527a0' }, // soft-purple
+        { bg: '#fff3a0', text: '#f57f17' }, // soft-yellow
+        { bg: '#b2dfdb', text: '#00695c' }, // soft-teal
+        { bg: '#ffcdd2', text: '#c62828' }  // soft-coral
+    ];
+    
+    // Calculer l'index de couleur basé sur le nom du bouton (même algorithme que button-selection-page)
+    const colorIndex = Math.abs(selectedButton.name.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % buttonColors.length;
+    const colorScheme = buttonColors[colorIndex];
+    
+    // Appliquer les couleurs
+    userButton.style.backgroundColor = colorScheme.bg;
+    userButton.style.color = colorScheme.text;
+    
+    // Mettre à jour la couleur de l'icône aussi
+    const icon = userButton.querySelector('.material-icons');
+    if (icon) {
+        icon.style.color = colorScheme.text;
+    }
+    
+    console.log(`Couleurs appliquées: bg=${colorScheme.bg}, text=${colorScheme.text}`);
 }
 
 /**
@@ -223,6 +295,9 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM chargé, initialisation de la page utilisateur');
     initializeUserPage();
 });
+
+// Override de la fonction onRecords globale
+window.onRecords = onRecords;
 
 // Export pour utilisation globale
 window.initializeUserPage = initializeUserPage;

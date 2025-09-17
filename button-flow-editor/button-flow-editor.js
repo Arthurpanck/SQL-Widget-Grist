@@ -269,7 +269,8 @@ async function handleCreateButton() {
         const newButton = {
             name: buttonName,
             sequence: querySequence,
-            rgba: generateButtonColorFromName(buttonName)
+            rgba: generateButtonColorFromName(buttonName),
+            exposed: false // Par défaut, le bouton n'est pas exposé
         };
         
         // Valider le bouton avant sauvegarde

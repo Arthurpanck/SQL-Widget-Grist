@@ -398,19 +398,92 @@
         /**
          * Gère le clic sur le bouton Sauvegarder
          */
-        function handleSaveButton() {
+        async function handleSaveButton() {
             if (!selectedButton) {
                 alert('Veuillez sélectionner un bouton');
                 return;
             }
             
-            console.log('Sauvegarde et navigation vers view-user-page avec bouton:', selectedButton);
+            console.log('Sauvegarde du bouton exposé dans Grist:', selectedButton);
             
-            // Sauvegarder la sélection dans localStorage pour la page suivante
-            localStorage.setItem('selectedButton', JSON.stringify(selectedButton));
+            try {
+                // Désactiver le bouton pendant la sauvegarde
+                const saveBtn = document.getElementById('save-btn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Sauvegarde...';
+                
+                // Marquer tous les boutons comme non exposés d'abord
+                await markAllButtonsAsNotExposed();
+                
+                // Marquer le bouton sélectionné comme exposé
+                await markButtonAsExposed(selectedButton.name);
+                
+                console.log('Bouton exposé sauvegardé avec succès');
+                
+                // Naviguer vers user-view-button
+                window.location.href = '../user-view-button/index.html';
+                
+            } catch (error) {
+                console.error('Erreur lors de la sauvegarde:', error);
+                alert('Erreur lors de la sauvegarde du bouton: ' + error.message);
+                
+                // Réactiver le bouton
+                const saveBtn = document.getElementById('save-btn');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<span class="material-icons mr-2">save</span>Sauvegarder';
+            }
+        }
+        
+        /**
+         * Marque tous les boutons comme non exposés
+         */
+        async function markAllButtonsAsNotExposed() {
+            if (!allRecords || !ButtonManager) return;
             
-            // Naviguer vers view-user-page
-            window.location.href = '../view-user-page/index.html';
+            for (const record of allRecords) {
+                try {
+                    const buttons = ButtonManager.readButtonConfig(record);
+                    const updatedButtons = buttons.map(button => ({
+                        ...button,
+                        exposed: false
+                    }));
+                    
+                    if (buttons.length > 0) {
+                        await ButtonManager.saveButtonConfig(record, updatedButtons);
+                    }
+                } catch (error) {
+                    console.warn('Erreur lors de la mise à jour de l\'enregistrement', record.id, ':', error);
+                }
+            }
+        }
+        
+        /**
+         * Marque un bouton spécifique comme exposé
+         */
+        async function markButtonAsExposed(buttonName) {
+            if (!allRecords || !ButtonManager) return;
+            
+            for (const record of allRecords) {
+                try {
+                    const buttons = ButtonManager.readButtonConfig(record);
+                    let buttonFound = false;
+                    
+                    const updatedButtons = buttons.map(button => {
+                        if (button.name === buttonName) {
+                            buttonFound = true;
+                            return { ...button, exposed: true };
+                        }
+                        return button;
+                    });
+                    
+                    if (buttonFound) {
+                        await ButtonManager.saveButtonConfig(record, updatedButtons);
+                        console.log(`Bouton "${buttonName}" marqué comme exposé dans l'enregistrement ${record.id}`);
+                    }
+                } catch (error) {
+                    console.warn('Erreur lors de la mise à jour de l\'enregistrement', record.id, ':', error);
+                }
+            }
         }
         
         /**
