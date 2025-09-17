@@ -191,21 +191,28 @@ function executeButton() {
  * Affiche le statut d'exécution
  */
 function showExecutionStatus() {
-    document.getElementById('execution-status').classList.remove('hidden');
-    updateExecutionProgress(0, 'Initialisation...');
+    // Changer le texte du bouton pour indiquer l'exécution
+    const buttonName = document.getElementById('button-name');
+    if (buttonName) {
+        buttonName.textContent = 'Exécution en cours...';
+    }
+    console.log('Début d\'exécution...');
 }
 
 /**
  * Met à jour la progression de l'exécution
  */
 function updateExecutionProgress(percentage, message) {
-    document.getElementById('progress-bar').style.width = percentage + '%';
-    document.getElementById('progress-text').textContent = Math.round(percentage) + '% terminé';
-    document.getElementById('status-message').textContent = message;
+    // Mettre à jour le texte du bouton avec la progression
+    const buttonName = document.getElementById('button-name');
+    if (buttonName) {
+        buttonName.textContent = `${Math.round(percentage)}% - ${message}`;
+    }
+    console.log(`Progression: ${percentage}% - ${message}`);
 }
 
 /**
- * Exécute une séquence de requêtes
+ * Exécute une séquence de requêtes avec la vraie logique SQL
  */
 async function executeSequence(sequence) {
     try {
@@ -213,30 +220,43 @@ async function executeSequence(sequence) {
             throw new Error('Données non disponibles - veuillez actualiser la page');
         }
         
+        if (!sqlField) {
+            throw new Error('Champ SQL non configuré');
+        }
+        
         const total = sequence.length;
+        console.log('Début exécution séquentielle de', total, 'requêtes');
         
         for (let i = 0; i < sequence.length; i++) {
             const recordId = sequence[i];
             const progress = ((i + 1) / total) * 100;
             
+            console.log(`Exécution requête ${i + 1}/${total} (ID: ${recordId})`);
+            updateExecutionProgress(progress, `Exécution requête ${i + 1}/${total}...`);
+            
             // Trouver l'enregistrement correspondant
             const record = allRecords.find(r => r.id === recordId);
             if (!record) {
                 console.warn(`Enregistrement ${recordId} non trouvé, passage au suivant`);
-                updateExecutionProgress(progress, `Requête ${i + 1}/${total} - Enregistrement manquant`);
                 continue;
             }
             
-            updateExecutionProgress(progress, `Exécution requête ${i + 1}/${total}...`);
+            // Extraire le SQL de l'enregistrement
+            const sqlQuery = record[sqlField];
+            if (!sqlQuery || sqlQuery.trim() === '') {
+                console.warn(`Requête vide pour l'ID ${recordId}, on continue...`);
+                continue;
+            }
             
-            // Simuler l'exécution (à remplacer par la vraie logique)
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            console.log(`SQL à exécuter pour ID ${recordId}:`, sqlQuery.substring(0, 100) + '...');
             
-            console.log(`Requête ${i + 1}/${total} exécutée (ID: ${recordId})`);
+            // Exécuter la requête avec l'architecture existante
+            await executeSingleQuery(record, sqlQuery);
         }
         
         // Succès
         showExecutionSuccess();
+        console.log('Séquence terminée avec succès');
         
     } catch (error) {
         console.error('Erreur lors de l\'exécution:', error);
@@ -247,22 +267,138 @@ async function executeSequence(sequence) {
 }
 
 /**
+ * Exécute une seule requête SQL en utilisant l'architecture de sql-executor
+ */
+async function executeSingleQuery(record, sqlQuery) {
+    try {
+        // Parser les métadonnées Python de cet enregistrement pour les conversions
+        if (record[pythonfield]) {
+            const tableData = parsePythonTableData(record[pythonfield]);
+            console.log('Métadonnées chargées pour la requête:', Object.keys(tableData).length, 'tables');
+        }
+        
+        // Vérifier si une table de destination est définie
+        const encodedDestinationTable = record[destinationTableField];
+        if (!encodedDestinationTable) {
+            console.warn('Aucune table de destination définie pour cette requête, exécution sans application des résultats');
+        }
+        
+        // Décoder l'ID de table vers le nom actuel (même si elle a changé de nom)
+        const destinationTable = encodedDestinationTable ? decodeTableIdToName(encodedDestinationTable) : null;
+        
+        // Convertir les labels en IDs pour l'exécution (comme dans sql-executor)
+        const sqlQueryWithIds = convertSqlLabelsToIds(sqlQuery);
+        
+        // Reconvertir les IDs en labels pour l'API SQL de Grist
+        const sqlQueryForExecution = convertSqlIdsToLabels(sqlQueryWithIds);
+        
+        console.log('SQL final pour exécution:', sqlQueryForExecution.substring(0, 100) + '...');
+        console.log('Table de destination encodée:', encodedDestinationTable || 'Aucune');
+        console.log('Table de destination résolue:', destinationTable || 'Aucune');
+        
+        // Obtenir le token d'accès
+        const tokenInfo = await grist.docApi.getAccessToken({ readOnly: false });
+        const baseUrl = tokenInfo.baseUrl;
+        const token = tokenInfo.token;
+        
+        // Construire l'URL et exécuter
+        const sqlEndpoint = `${baseUrl}/sql?q=${encodeURIComponent(sqlQueryForExecution)}&auth=${token}`;
+        
+        const sqlResponse = await fetch(sqlEndpoint, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        const sqlResult = await sqlResponse.json();
+        
+        // Vérifier les erreurs
+        if (sqlResult.error) {
+            throw new Error(`Erreur SQL: ${sqlResult.error}`);
+        }
+        
+        console.log(`Requête exécutée avec succès, ${sqlResult.records ? sqlResult.records.length : 0} résultats`);
+        
+        // Appliquer les résultats à la table de destination si définie et si il y a des données
+        if (destinationTable && sqlResult.records && sqlResult.records.length > 0) {
+            await applyResultsToTable(sqlResult.records, destinationTable);
+        } else if (destinationTable && (!sqlResult.records || sqlResult.records.length === 0)) {
+            console.log('Aucun résultat à appliquer à la table de destination');
+        }
+        
+    } catch (error) {
+        console.error('Erreur lors de l\'exécution de la requête:', error);
+        throw error; // Remonter l'erreur pour arrêter la séquence
+    }
+}
+
+/**
+ * Applique les résultats d'une requête à une table de destination (comme dans sql-executor)
+ */
+async function applyResultsToTable(records, destinationTable) {
+    try {
+        console.log(`Application de ${records.length} résultats à la table "${destinationTable}"`);
+        
+        // Obtenir les informations de la table de destination
+        const destinationTables = await grist.docApi.fetchTable('_grist_Tables');
+        const tableRecord = destinationTables.find(t => t.tableId === destinationTable);
+        
+        if (!tableRecord) {
+            throw new Error(`Table de destination "${destinationTable}" non trouvée`);
+        }
+        
+        // Appliquer les résultats via l'API Grist
+        const applyResult = await grist.docApi.applyUserActions([
+            ['ReplaceTableData', destinationTable, records.map(r => r.id || null), records.map(r => {
+                const cleanRecord = { ...r };
+                delete cleanRecord.id; // Supprimer l'ID pour éviter les conflits
+                return cleanRecord;
+            })]
+        ]);
+        
+        console.log('Résultats appliqués avec succès à la table', destinationTable);
+        
+    } catch (error) {
+        console.error('Erreur lors de l\'application des résultats:', error);
+        throw error;
+    }
+}
+
+/**
  * Affiche le succès de l'exécution
  */
 function showExecutionSuccess() {
-    document.getElementById('status-icon').textContent = '✅';
-    document.getElementById('status-title').textContent = 'Exécution terminée avec succès';
-    document.getElementById('status-message').textContent = 'Toutes les requêtes ont été exécutées correctement.';
-    updateExecutionProgress(100, 'Terminé');
+    const buttonName = document.getElementById('button-name');
+    if (buttonName && selectedButton) {
+        buttonName.textContent = '✅ Terminé';
+        // Remettre le nom original après 2 secondes
+        setTimeout(() => {
+            if (buttonName && selectedButton) {
+                buttonName.textContent = selectedButton.name;
+            }
+        }, 2000);
+    }
+    console.log('Exécution terminée avec succès');
 }
 
 /**
  * Affiche une erreur d'exécution
  */
 function showExecutionError(message) {
-    document.getElementById('status-icon').textContent = '❌';
-    document.getElementById('status-title').textContent = 'Erreur d\'exécution';
-    document.getElementById('status-message').textContent = message;
+    const buttonName = document.getElementById('button-name');
+    if (buttonName && selectedButton) {
+        buttonName.textContent = '❌ Erreur';
+        // Remettre le nom original après 3 secondes
+        setTimeout(() => {
+            if (buttonName && selectedButton) {
+                buttonName.textContent = selectedButton.name;
+            }
+        }, 3000);
+    }
+    console.error('Erreur d\'exécution:', message);
+    // Aussi afficher l'erreur à l'utilisateur
+    alert('Erreur lors de l\'exécution: ' + message);
 }
 
 /**
