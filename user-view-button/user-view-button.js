@@ -278,9 +278,26 @@ async function executeSingleQuery(record, sqlQuery) {
         }
         
         // Vérifier si une table de destination est définie
-        const destinationTable = record[destinationTableField];
-        if (!destinationTable) {
+        const destinationTableRaw = record[destinationTableField];
+        if (!destinationTableRaw) {
             console.warn('Aucune table de destination définie pour cette requête, exécution sans application des résultats');
+        }
+        
+        // Décoder la table de destination de [Table:15] vers le vrai nom
+        let destinationTable = destinationTableRaw;
+        if (destinationTableRaw && destinationTableRaw.startsWith('[Table:')) {
+            // Extraire l'ID de la table
+            const tableIdMatch = destinationTableRaw.match(/\[Table:(\d+)\]/);
+            if (tableIdMatch && tableIdToName) {
+                const tableId = tableIdMatch[1];
+                const realTableName = tableIdToName[tableId];
+                if (realTableName) {
+                    destinationTable = realTableName;
+                    console.log(`Table de destination décodée: ${destinationTableRaw} -> ${destinationTable}`);
+                } else {
+                    console.warn(`Impossible de décoder la table ${destinationTableRaw}, ID non trouvé dans les mappings`);
+                }
+            }
         }
         
         // Convertir les labels en IDs pour l'exécution (comme dans sql-executor)
