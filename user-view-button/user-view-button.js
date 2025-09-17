@@ -318,19 +318,42 @@ async function executeSingleQuery(record, sqlQuery) {
         
         // Appliquer les résultats à la table de destination si définie et si il y a des données
         if (destinationTable && sqlResult.records && sqlResult.records.length > 0) {
-            // Préparer les données exactement comme dans sql-executor.js
-            const records = sqlResult.records.map(record => record.fields);
-            const bulkData = convertToBulkColValues(records);
+            console.log('=== DÉBUT APPLICATION RÉSULTATS ===');
+            console.log('destinationTable:', destinationTable);
+            console.log('sqlResult.records:', sqlResult.records);
+            console.log('Premier sqlResult.record:', sqlResult.records[0]);
             
-            // Générer les IDs séquentiels
-            const IDs = Array.from({length: records.length}, (x, i) => i + 1);
-            
-            // Appliquer les données à la table directement
-            console.log(`Insertion de ${records.length} enregistrements dans ${destinationTable}`);
-            await grist.docApi.applyUserActions([
-                ['ReplaceTableData', destinationTable, IDs, bulkData]
-            ]);
-            console.log('Résultats appliqués avec succès à la table', destinationTable);
+            try {
+                // Préparer les données exactement comme dans sql-executor.js
+                console.log('Étape 1: Extraction des champs...');
+                const records = sqlResult.records.map(record => record.fields);
+                console.log('Records après extraction:', records);
+                console.log('Premier record après extraction:', records[0]);
+                
+                console.log('Étape 2: Conversion BulkColValues...');
+                const bulkData = convertToBulkColValues(records);
+                console.log('BulkData créé:', bulkData);
+                
+                // Générer les IDs séquentiels
+                console.log('Étape 3: Génération des IDs...');
+                const IDs = Array.from({length: records.length}, (x, i) => i + 1);
+                console.log('IDs générés:', IDs);
+                
+                // Appliquer les données à la table directement
+                console.log('Étape 4: Application à la table...');
+                console.log(`Insertion de ${records.length} enregistrements dans ${destinationTable}`);
+                console.log('Appel applyUserActions avec:', ['ReplaceTableData', destinationTable, IDs, bulkData]);
+                
+                await grist.docApi.applyUserActions([
+                    ['ReplaceTableData', destinationTable, IDs, bulkData]
+                ]);
+                console.log('✅ Résultats appliqués avec succès à la table', destinationTable);
+                
+            } catch (innerError) {
+                console.error('❌ ERREUR dans l\'application des résultats:', innerError);
+                console.error('Stack trace:', innerError.stack);
+                throw innerError;
+            }
         } else if (destinationTable && (!sqlResult.records || sqlResult.records.length === 0)) {
             console.log('Aucun résultat à appliquer à la table de destination');
         }
