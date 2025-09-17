@@ -330,20 +330,42 @@ async function executeSingleQuery(record, sqlQuery) {
 }
 
 /**
+ * Convertit un tableau d'objets en format BulkColValues pour Grist
+ */
+function convertToBulkColValues(records) {
+    if (records.length === 0) {
+        throw new Error("Aucune donnée à insérer.");
+    }
+
+    // Extraire les noms de colonnes
+    const columns = Object.keys(records[0]);
+
+    // Construire l'objet BulkColValues
+    let bulkColValues = {};
+    columns.forEach(col => {
+        bulkColValues[col] = records.map(row => row[col] ?? null);
+    });
+
+    return bulkColValues;
+}
+
+/**
  * Applique les résultats d'une requête à une table de destination
  */
-async function applyResultsToTable(records, destinationTable) {
+async function applyResultsToTable(sqlRecords, destinationTable) {
     try {
-        console.log(`Application de ${records.length} résultats à la table "${destinationTable}"`);
+        console.log(`Application de ${sqlRecords.length} résultats à la table "${destinationTable}"`);
         
-        // Directement appliquer les résultats à la table spécifiée
-        // La table existe déjà et est spécifiée dans la colonne destinationTableField
-        const applyResult = await grist.docApi.applyUserActions([
-            ['ReplaceTableData', destinationTable, records.map(r => r.id || null), records.map(r => {
-                const cleanRecord = { ...r };
-                delete cleanRecord.id; // Supprimer l'ID pour éviter les conflits
-                return cleanRecord;
-            })]
+        // Extraire les champs comme dans sql-executor.js
+        const records = sqlRecords.map(record => record.fields);
+        const bulkData = convertToBulkColValues(records);
+        
+        // Générer les IDs séquentiels comme dans sql-executor.js
+        const IDs = Array.from({length: records.length}, (x, i) => i + 1);
+        
+        // Appliquer les données à la table avec le format exact de sql-executor.js
+        await grist.docApi.applyUserActions([
+            ['ReplaceTableData', destinationTable, IDs, bulkData]
         ]);
         
         console.log('Résultats appliqués avec succès à la table', destinationTable);
