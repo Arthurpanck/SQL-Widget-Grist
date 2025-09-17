@@ -27,17 +27,21 @@ function onRecord(record, mappings) {
     if (sqlField === pythonfield) {
         console.error("ERREUR: Les deux colonnes sont mappées sur le même champ:", sqlField);
         console.error("Vous devez mapper 'Code SQL' et 'Code Python' sur deux colonnes DIFFÉRENTES !");
-        updateStatus('error', 'Erreur: colonnes identiques mappées');
+        if (typeof updateStatus === 'function') {
+            updateStatus('error', 'Erreur: colonnes identiques mappées');
+        }
         return;
     }
     
-    // Sauvegarder l'ancien enregistrement si nécessaire
-    if (oldRecord && editor && editor.getValue() !== oldRecord[sqlField]) {
+    // Sauvegarder l'ancien enregistrement si nécessaire (seulement si editor et save existent)
+    if (oldRecord && typeof editor !== 'undefined' && editor && typeof save === 'function' && editor.getValue() !== oldRecord[sqlField]) {
         save(oldRecord);
     }
     
-    // Charger ce nouvel enregistrement
-    loadQueryIntoEditor(record);
+    // Charger ce nouvel enregistrement (seulement si la fonction existe)
+    if (typeof loadQueryIntoEditor === 'function') {
+        loadQueryIntoEditor(record);
+    }
 }
 
 /**
@@ -46,13 +50,13 @@ function onRecord(record, mappings) {
 function onNewRecord(record) {
     console.log("Nouvel enregistrement:", record);
     
-    // Sauvegarder l'ancien enregistrement
-    if (oldRecord && editor) {
+    // Sauvegarder l'ancien enregistrement (seulement si editor et save existent)
+    if (oldRecord && typeof editor !== 'undefined' && editor && typeof save === 'function') {
         save(oldRecord);
     }
     
-    // Éditeur en lecture seule pour nouveau record
-    if (editor) {
+    // Éditeur en lecture seule pour nouveau record (seulement si editor existe)
+    if (typeof editor !== 'undefined' && editor) {
         editor.setReadOnly(true);
         editor.setValue("-- Sélectionnez un enregistrement pour éditer du SQL", -1);
     }
@@ -62,11 +66,16 @@ function onNewRecord(record) {
     tableColumnsData = {};
     tableColumns = {};
     
-    // Désactiver les boutons
-    document.getElementById('saveBtn').disabled = true;
-    document.getElementById('executeBtn').disabled = true;
+    // Désactiver les boutons (seulement si ils existent)
+    const saveBtn = document.getElementById('saveBtn');
+    const executeBtn = document.getElementById('executeBtn');
+    if (saveBtn) saveBtn.disabled = true;
+    if (executeBtn) executeBtn.disabled = true;
     
-    updateStatus('waiting', 'En attente d\'un enregistrement');
+    // Mettre à jour le statut (seulement si la fonction existe)
+    if (typeof updateStatus === 'function') {
+        updateStatus('waiting', 'En attente d\'un enregistrement');
+    }
 }
 
 /**

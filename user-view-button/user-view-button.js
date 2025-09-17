@@ -126,21 +126,10 @@ function displayButton() {
     // Mettre à jour le contenu du bouton
     document.getElementById('button-name').textContent = selectedButton.name;
     
-    // Générer une description basée sur le nombre de requêtes
-    const sequenceLength = selectedButton.sequence ? selectedButton.sequence.length : 0;
-    let description = '';
-    if (sequenceLength === 0) {
-        description = 'Aucune requête configurée';
-    } else if (sequenceLength === 1) {
-        description = '1 requête à exécuter';
-    } else {
-        description = `${sequenceLength} requêtes à exécuter`;
-    }
-    document.getElementById('button-description').textContent = description;
-    
     // Appliquer les couleurs du bouton si disponibles
     applyButtonColors();
     
+    const sequenceLength = selectedButton.sequence ? selectedButton.sequence.length : 0;
     console.log(`Bouton "${selectedButton.name}" affiché avec ${sequenceLength} requêtes`);
 }
 
@@ -151,33 +140,29 @@ function applyButtonColors() {
     const userButton = document.getElementById('user-button');
     if (!userButton || !selectedButton) return;
     
-    // Palette de couleurs identique à button-selection-page
+    // Palette de couleurs avec classes Tailwind identique à button-selection-page
     const buttonColors = [
-        { bg: '#a8e6cf', text: '#2e7d32' }, // soft-green
-        { bg: '#ffb366', text: '#5d4037' }, // soft-orange
-        { bg: '#f8bbd9', text: '#6a1b9a' }, // soft-pink
-        { bg: '#a8d8ea', text: '#1565c0' }, // soft-blue
-        { bg: '#d1c4e9', text: '#4527a0' }, // soft-purple
-        { bg: '#fff3a0', text: '#f57f17' }, // soft-yellow
-        { bg: '#b2dfdb', text: '#00695c' }, // soft-teal
-        { bg: '#ffcdd2', text: '#c62828' }  // soft-coral
+        { bg: 'bg-soft-green', text: 'text-soft-green-text', bgHex: '#a8e6cf', textHex: '#2e7d32' },
+        { bg: 'bg-soft-orange', text: 'text-soft-orange-text', bgHex: '#ffb366', textHex: '#5d4037' },
+        { bg: 'bg-soft-pink', text: 'text-soft-pink-text', bgHex: '#f8bbd9', textHex: '#6a1b9a' },
+        { bg: 'bg-soft-blue', text: 'text-soft-blue-text', bgHex: '#a8d8ea', textHex: '#1565c0' },
+        { bg: 'bg-soft-purple', text: 'text-soft-purple-text', bgHex: '#d1c4e9', textHex: '#4527a0' },
+        { bg: 'bg-soft-yellow', text: 'text-soft-yellow-text', bgHex: '#fff3a0', textHex: '#f57f17' },
+        { bg: 'bg-soft-teal', text: 'text-soft-teal-text', bgHex: '#b2dfdb', textHex: '#00695c' },
+        { bg: 'bg-soft-coral', text: 'text-soft-coral-text', bgHex: '#ffcdd2', textHex: '#c62828' }
     ];
     
     // Calculer l'index de couleur basé sur le nom du bouton (même algorithme que button-selection-page)
     const colorIndex = Math.abs(selectedButton.name.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % buttonColors.length;
     const colorScheme = buttonColors[colorIndex];
     
-    // Appliquer les couleurs
-    userButton.style.backgroundColor = colorScheme.bg;
-    userButton.style.color = colorScheme.text;
+    // Nettoyer les anciennes classes
+    userButton.className = userButton.className.replace(/bg-soft-\w+|text-soft-\w+-text/g, '');
     
-    // Mettre à jour la couleur de l'icône aussi
-    const icon = userButton.querySelector('.material-icons');
-    if (icon) {
-        icon.style.color = colorScheme.text;
-    }
+    // Ajouter les nouvelles classes de couleur
+    userButton.classList.add(colorScheme.bg, colorScheme.text);
     
-    console.log(`Couleurs appliquées: bg=${colorScheme.bg}, text=${colorScheme.text}`);
+    console.log(`Couleurs appliquées: ${colorScheme.bg} ${colorScheme.text}`);
 }
 
 /**

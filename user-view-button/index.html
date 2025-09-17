@@ -16,6 +16,32 @@
     <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'soft-green': '#a8e6cf',
+                        'soft-green-text': '#2e7d32',
+                        'soft-orange': '#ffb366',
+                        'soft-orange-text': '#5d4037',
+                        'soft-pink': '#f8bbd9',
+                        'soft-pink-text': '#6a1b9a',
+                        'soft-blue': '#a8d8ea',
+                        'soft-blue-text': '#1565c0',
+                        'soft-purple': '#d1c4e9',
+                        'soft-purple-text': '#4527a0',
+                        'soft-yellow': '#fff3a0',
+                        'soft-yellow-text': '#f57f17',
+                        'soft-teal': '#b2dfdb',
+                        'soft-teal-text': '#00695c',
+                        'soft-coral': '#ffcdd2',
+                        'soft-coral-text': '#c62828'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -27,16 +53,16 @@
             align-items: center;
             justify-content: center;
         }
-        .button-card {
-            background: #e5e5e5;
-            border: 1px solid #d0d0d0;
-            border-radius: 8px;
-            padding: 2rem;
-            transition: transform 0.2s ease;
-            cursor: pointer;
+        .button-selector {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(1);
+            opacity: 1;
+            position: relative;
+            overflow: hidden;
         }
-        .button-card:hover {
-            transform: translateY(-1px);
+        .button-selector:hover {
+            transform: scale(1.05);
+            opacity: 1;
         }
     </style>
 </head>
@@ -49,12 +75,9 @@
     
     <!-- Affichage du bouton sélectionné -->
     <div id="button-display" class="hidden">
-        <div class="button-card" id="user-button" onclick="executeButton()">
-            <div style="text-align: center;">
-                <span class="material-icons" style="font-size: 3rem; display: block; margin-bottom: 1rem;">play_circle_filled</span>
-                <h3 id="button-name" style="margin: 0; font-size: 1.8rem; font-weight: bold;"></h3>
-                <p id="button-description" style="margin: 0.5rem 0 0 0; font-size: 0.9rem; opacity: 0.8;"></p>
-            </div>
+        <div class="button-selector cursor-pointer flex items-center justify-center p-4 rounded-xl font-medium shadow-md min-w-[120px] text-center" 
+             id="user-button" onclick="executeButton()">
+            <span id="button-name"></span>
         </div>
     </div>
 </body>
