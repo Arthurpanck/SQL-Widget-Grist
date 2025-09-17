@@ -337,8 +337,18 @@ function convertToBulkColValues(records) {
         throw new Error("Aucune donnée à insérer.");
     }
 
+    console.log('convertToBulkColValues - Premier record:', records[0]);
+    console.log('convertToBulkColValues - Type du premier record:', typeof records[0]);
+    console.log('convertToBulkColValues - Array.isArray(records[0]):', Array.isArray(records[0]));
+
+    // Vérifier si les records sont des objets ou des listes
+    if (Array.isArray(records[0])) {
+        throw new Error("Les records sont des listes, pas des objets. Structure inattendue.");
+    }
+
     // Extraire les noms de colonnes
     const columns = Object.keys(records[0]);
+    console.log('convertToBulkColValues - Colonnes détectées:', columns);
 
     // Construire l'objet BulkColValues
     let bulkColValues = {};
@@ -346,6 +356,7 @@ function convertToBulkColValues(records) {
         bulkColValues[col] = records.map(row => row[col] ?? null);
     });
 
+    console.log('convertToBulkColValues - Résultat:', bulkColValues);
     return bulkColValues;
 }
 
@@ -355,9 +366,13 @@ function convertToBulkColValues(records) {
 async function applyResultsToTable(sqlRecords, destinationTable) {
     try {
         console.log(`Application de ${sqlRecords.length} résultats à la table "${destinationTable}"`);
+        console.log('Structure des données reçues:', sqlRecords);
         
         // Extraire les champs comme dans sql-executor.js
         const records = sqlRecords.map(record => record.fields);
+        console.log('Records après extraction des champs:', records);
+        console.log('Premier record:', records[0]);
+        
         const bulkData = convertToBulkColValues(records);
         
         // Générer les IDs séquentiels comme dans sql-executor.js
@@ -372,6 +387,7 @@ async function applyResultsToTable(sqlRecords, destinationTable) {
         
     } catch (error) {
         console.error('Erreur lors de l\'application des résultats:', error);
+        console.error('Détails de l\'erreur:', error.stack);
         // Ne pas faire échouer toute la séquence pour une erreur d'application
         console.warn('Continuant malgré l\'erreur d\'application des résultats');
     }
