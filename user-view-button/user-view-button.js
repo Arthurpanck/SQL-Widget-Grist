@@ -278,13 +278,10 @@ async function executeSingleQuery(record, sqlQuery) {
         }
         
         // Vérifier si une table de destination est définie
-        const encodedDestinationTable = record[destinationTableField];
-        if (!encodedDestinationTable) {
+        const destinationTable = record[destinationTableField];
+        if (!destinationTable) {
             console.warn('Aucune table de destination définie pour cette requête, exécution sans application des résultats');
         }
-        
-        // Décoder l'ID de table vers le nom actuel (même si elle a changé de nom)
-        const destinationTable = encodedDestinationTable ? decodeTableIdToName(encodedDestinationTable) : null;
         
         // Convertir les labels en IDs pour l'exécution (comme dans sql-executor)
         const sqlQueryWithIds = convertSqlLabelsToIds(sqlQuery);
@@ -293,8 +290,7 @@ async function executeSingleQuery(record, sqlQuery) {
         const sqlQueryForExecution = convertSqlIdsToLabels(sqlQueryWithIds);
         
         console.log('SQL final pour exécution:', sqlQueryForExecution.substring(0, 100) + '...');
-        console.log('Table de destination encodée:', encodedDestinationTable || 'Aucune');
-        console.log('Table de destination résolue:', destinationTable || 'Aucune');
+        console.log('Table de destination:', destinationTable || 'Aucune');
         
         // Obtenir le token d'accès
         const tokenInfo = await grist.docApi.getAccessToken({ readOnly: false });
@@ -334,21 +330,14 @@ async function executeSingleQuery(record, sqlQuery) {
 }
 
 /**
- * Applique les résultats d'une requête à une table de destination (comme dans sql-executor)
+ * Applique les résultats d'une requête à une table de destination
  */
 async function applyResultsToTable(records, destinationTable) {
     try {
         console.log(`Application de ${records.length} résultats à la table "${destinationTable}"`);
         
-        // Obtenir les informations de la table de destination
-        const destinationTables = await grist.docApi.fetchTable('_grist_Tables');
-        const tableRecord = destinationTables.find(t => t.tableId === destinationTable);
-        
-        if (!tableRecord) {
-            throw new Error(`Table de destination "${destinationTable}" non trouvée`);
-        }
-        
-        // Appliquer les résultats via l'API Grist
+        // Directement appliquer les résultats à la table spécifiée
+        // La table existe déjà et est spécifiée dans la colonne destinationTableField
         const applyResult = await grist.docApi.applyUserActions([
             ['ReplaceTableData', destinationTable, records.map(r => r.id || null), records.map(r => {
                 const cleanRecord = { ...r };
@@ -361,7 +350,8 @@ async function applyResultsToTable(records, destinationTable) {
         
     } catch (error) {
         console.error('Erreur lors de l\'application des résultats:', error);
-        throw error;
+        // Ne pas faire échouer toute la séquence pour une erreur d'application
+        console.warn('Continuant malgré l\'erreur d\'application des résultats');
     }
 }
 
