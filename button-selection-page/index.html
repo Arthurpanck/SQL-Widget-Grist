@@ -435,6 +435,16 @@
         }
         
         /**
+         * Normalise un bouton pour s'assurer qu'il a le champ exposed
+         */
+        function normalizeButton(button) {
+            return {
+                ...button,
+                exposed: button.exposed !== undefined ? button.exposed : false
+            };
+        }
+
+        /**
          * Marque tous les boutons comme non exposés
          */
         async function markAllButtonsAsNotExposed() {
@@ -443,13 +453,18 @@
             for (const record of allRecords) {
                 try {
                     const buttons = ButtonManager.readButtonConfig(record);
+                    console.log('Avant normalisation dans', record.id, ':', buttons);
+                    
                     const updatedButtons = buttons.map(button => ({
-                        ...button,
+                        ...normalizeButton(button),
                         exposed: false
                     }));
                     
+                    console.log('Après normalisation dans', record.id, ':', updatedButtons);
+                    
                     if (buttons.length > 0) {
                         await ButtonManager.saveButtonConfig(record, updatedButtons);
+                        console.log('Boutons sauvegardés avec exposed:false dans enregistrement', record.id);
                     }
                 } catch (error) {
                     console.warn('Erreur lors de la mise à jour de l\'enregistrement', record.id, ':', error);
@@ -469,16 +484,21 @@
                     let buttonFound = false;
                     
                     const updatedButtons = buttons.map(button => {
-                        if (button.name === buttonName) {
+                        const normalized = normalizeButton(button);
+                        if (normalized.name === buttonName) {
                             buttonFound = true;
-                            return { ...button, exposed: true };
+                            return { ...normalized, exposed: true };
                         }
-                        return button;
+                        return { ...normalized, exposed: false };
                     });
                     
                     if (buttonFound) {
                         await ButtonManager.saveButtonConfig(record, updatedButtons);
                         console.log(`Bouton "${buttonName}" marqué comme exposé dans l'enregistrement ${record.id}`);
+                    } else if (buttons.length > 0) {
+                        // Même s'il n'y a pas le bouton ciblé, sauvegarder pour normaliser les autres
+                        await ButtonManager.saveButtonConfig(record, updatedButtons);
+                        console.log(`Boutons normalisés dans l'enregistrement ${record.id}`);
                     }
                 } catch (error) {
                     console.warn('Erreur lors de la mise à jour de l\'enregistrement', record.id, ':', error);

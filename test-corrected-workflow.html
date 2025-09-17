@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <title>Test - Workflow Corrigé</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+</head>
+<body class="p-8 bg-gray-100">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Test du Workflow Corrigé</h1>
+        
+        <div class="space-y-6">
+            <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-500">
+                <h2 class="font-semibold text-blue-800 mb-4">Corrections Apportées</h2>
+                <ul class="list-disc list-inside space-y-2 text-sm">
+                    <li>✅ Interface user-view simplifiée en gris basique sans navigation</li>
+                    <li>✅ Redirection button-selection-page → user-view-button</li>
+                    <li>✅ Champ `exposed: true/false` ajouté aux boutons</li>
+                    <li>✅ Stockage dans Grist au lieu de localStorage</li>
+                    <li>✅ Normalisation des boutons existants sans champ exposed</li>
+                    <li>✅ Couleurs identiques à button-selection-page</li>
+                </ul>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded border-l-4 border-green-500">
+                <h2 class="font-semibold text-green-800 mb-4">Workflow Corrigé</h2>
+                <ol class="list-decimal list-inside space-y-2 text-sm">
+                    <li>Créer des boutons dans <strong>button-flow-editor</strong> (avec exposed: false)</li>
+                    <li>Aller sur <strong>button-selection-page</strong> pour sélectionner un bouton</li>
+                    <li>Cliquer "Sauvegarder" → marque le bouton comme exposed: true dans Grist</li>
+                    <li>Redirection automatique vers <strong>user-view-button</strong></li>
+                    <li>Affichage du bouton exposé avec les bonnes couleurs</li>
+                </ol>
+            </div>
+            
+            <div class="bg-yellow-50 p-4 rounded border-l-4 border-yellow-500">
+                <h2 class="font-semibold text-yellow-800 mb-4">Navigation de Test</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <a href="button-flow-editor/index.html" class="bg-teal-600 text-white text-center py-3 px-4 rounded-lg hover:bg-teal-700 transition-colors">
+                        <div class="material-icons mb-1">build_circle</div>
+                        <div class="text-sm">Créateur Boutons</div>
+                    </a>
+                    
+                    <a href="button-selection-page/index.html" class="bg-blue-600 text-white text-center py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                        <div class="material-icons mb-1">radio_button_checked</div>
+                        <div class="text-sm">Sélection</div>
+                    </a>
+                    
+                    <a href="user-view-button/index.html" class="bg-gray-600 text-white text-center py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors">
+                        <div class="material-icons mb-1">visibility</div>
+                        <div class="text-sm">Vue Utilisateur</div>
+                    </a>
+                    
+                    <a href="sql-editor/index.html" class="bg-purple-600 text-white text-center py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+                        <div class="material-icons mb-1">edit_note</div>
+                        <div class="text-sm">Éditeur SQL</div>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded border-l-4 border-gray-400">
+                <h2 class="font-semibold text-gray-800 mb-4">Structure des Boutons</h2>
+                <pre class="text-xs bg-white p-3 rounded border"><code>{
+  "name": "Nom du bouton",
+  "sequence": [1, 2, 3],
+  "rgba": "rgba(168, 230, 207, 1)",
+  "exposed": false // ou true pour le bouton affiché
+}</code></pre>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

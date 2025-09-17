@@ -11,12 +11,7 @@ let isExecuting = false;
 function initializeUserPage() {
     console.log('Initialisation de la page vue utilisateur bouton');
     
-    // Initialiser la navigation compacte
-    if (typeof addCompactNavigationToContainer === 'function') {
-        addCompactNavigationToContainer('user-view-button', 'compact-navigation');
-    }
-    
-    // Charger le bouton depuis localStorage
+    // Charger le bouton exposé depuis Grist
     loadSelectedButton();
     
     // Configurer Grist pour récupérer les données
@@ -49,6 +44,16 @@ function onRecords(records, mappings) {
 }
 
 /**
+ * Normalise un bouton pour s'assurer qu'il a le champ exposed
+ */
+function normalizeButton(button) {
+    return {
+        ...button,
+        exposed: button.exposed !== undefined ? button.exposed : false
+    };
+}
+
+/**
  * Charge le bouton marqué comme exposé depuis les données Grist
  */
 function loadExposedButton() {
@@ -67,7 +72,11 @@ function loadExposedButton() {
             
             try {
                 const buttons = ButtonManager.readButtonConfig(record);
-                const exposed = buttons.find(button => button.exposed === true);
+                console.log('Boutons lus dans enregistrement', record.id, ':', buttons);
+                
+                // Normaliser tous les boutons et chercher celui qui est exposé
+                const normalizedButtons = buttons.map(normalizeButton);
+                const exposed = normalizedButtons.find(button => button.exposed === true);
                 
                 if (exposed) {
                     exposedButton = exposed;
